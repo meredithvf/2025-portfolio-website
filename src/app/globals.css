@@ -20,7 +20,7 @@
 }
 
 html {
-  scroll-behavior: smooth;
+  scroll-behavior: auto;
 }
 
 body {
@@ -48,9 +48,9 @@ body {
   background: #555;
 }
 
-/* Smooth transitions for all elements */
+/* Smooth transitions for all elements except during scroll animation */
 * {
-  transition: transform 0.3s ease-out, opacity 0.3s ease-out;
+  transition: none;
 }
 
 /* Text selection styling */

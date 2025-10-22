@@ -1,272 +1,325 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import Image from "next/image";
+/**
+ * TO DO:
+ * Images:
+ * - Upload Images
+ * - Make smaller so that when it zooms in to a letterit shows the full image not zoomed in
+ * - Repeat images?
+ *
+ * Randomly change which image/letter is zoomed in on each scroll
+ *
+ * Right now it might be black when the image takes over, smooth that transition & figure out issue
+ */
 
-// Sample images - you can replace these with your own images
-const sampleImages = [
-  "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop",
-  "https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=800&h=600&fit=crop",
-  "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800&h=600&fit=crop",
-  "https://images.unsplash.com/photo-1501594907352-04cda38ebc29?w=800&h=600&fit=crop",
-  "https://images.unsplash.com/photo-1518837695005-2083093ee35b?w=800&h=600&fit=crop",
-  "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop",
-  "https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=800&h=600&fit=crop",
-  "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800&h=600&fit=crop",
-  "https://images.unsplash.com/photo-1501594907352-04cda38ebc29?w=800&h=600&fit=crop",
-  "https://images.unsplash.com/photo-1518837695005-2083093ee35b?w=800&h=600&fit=crop",
-];
+import { useEffect, useRef, useState } from "react";
 
 export default function Home() {
   const [scrollProgress, setScrollProgress] = useState(0);
-  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
-  const [isZoomComplete, setIsZoomComplete] = useState(false);
-  const [targetLetterIndex, setTargetLetterIndex] = useState(0);
-  const textRef = useRef<HTMLDivElement>(null);
-  const heroRef = useRef<HTMLDivElement>(null);
+  const [zoomComplete, setZoomComplete] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const nameRef = useRef<HTMLDivElement>(null);
 
-  // Initialize random target letter on mount
+  // Sample images - replace with your own
+  const images = [
+    "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=400&fit=crop",
+    "https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=400&h=400&fit=crop",
+    "https://images.unsplash.com/photo-1501594907352-04cda38ebc29?w=400&h=400&fit=crop",
+    "https://images.unsplash.com/photo-1472214103451-9374bd1c798e?w=400&h=400&fit=crop",
+    "https://images.unsplash.com/photo-1518837695005-2083093ee35b?w=400&h=400&fit=crop",
+    "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=400&h=400&fit=crop",
+    "https://images.unsplash.com/photo-1511593358241-7eea1f3c84e5?w=400&h=400&fit=crop",
+    "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=400&h=400&fit=crop",
+    "https://images.unsplash.com/photo-1426604966848-d7adac402bff?w=400&h=400&fit=crop",
+    "https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=400&h=400&fit=crop",
+    "https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?w=400&h=400&fit=crop",
+    "https://images.unsplash.com/photo-1473496169904-658ba7c44d8a?w=400&h=400&fit=crop",
+  ];
+
   useEffect(() => {
-    const randomIndex = Math.floor(Math.random() * 17); // 17 total letters
-    setTargetLetterIndex(randomIndex);
-  }, []);
+    const handleScroll = () => {
+      const scrollTop = window.scrollY;
+      const windowHeight = window.innerHeight;
 
-  useEffect(() => {
-    let accumulatedScroll = 0;
-    const maxScroll = 1000; // Total scroll needed to complete zoom
+      // Zoom phase: 0 to 3 viewport heights (longer zoom duration)
+      const zoomPhaseHeight = windowHeight * 3;
 
-    const handleWheel = (e: WheelEvent) => {
-      if (!isZoomComplete) {
-        e.preventDefault();
-
-        // Accumulate scroll delta
-        accumulatedScroll += e.deltaY;
-        accumulatedScroll = Math.max(0, Math.min(accumulatedScroll, maxScroll));
-
-        const progress = accumulatedScroll / maxScroll;
+      if (scrollTop < zoomPhaseHeight) {
+        // During zoom phase
+        const progress = Math.min(scrollTop / zoomPhaseHeight, 1);
         setScrollProgress(progress);
+        setZoomComplete(false);
 
-        // Use the target letter's image
-        setSelectedImageIndex(targetLetterIndex % sampleImages.length);
+        // Prevent default scroll during zoom phase
+        if (containerRef.current) {
+          containerRef.current.style.position = "fixed";
+          containerRef.current.style.top = "0";
+        }
+      } else {
+        // After zoom completes
+        setScrollProgress(1);
+        setZoomComplete(true);
 
-        // Check if zoom is complete
-        if (progress >= 1) {
-          setIsZoomComplete(true);
-          document.body.style.overflow = "auto";
+        if (containerRef.current) {
+          containerRef.current.style.position = "absolute";
+          containerRef.current.style.top = "0";
         }
       }
     };
 
-    // Prevent all scrolling until zoom is complete
-    const preventScroll = (e: Event) => {
-      if (!isZoomComplete) {
-        e.preventDefault();
-      }
-    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    handleScroll();
 
-    window.addEventListener("wheel", handleWheel, { passive: false });
-    window.addEventListener("scroll", preventScroll, { passive: false });
-    window.addEventListener("touchmove", preventScroll, { passive: false });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
-    // Initially disable scrolling
-    document.body.style.overflow = "hidden";
+  // Calculate zoom transformation
+  // Pure zoom effect - we're diving INTO the name and into one of its images
+  // Everything scales together at the same rate, creating a seamless zoom
+  const zoomScale = 1 + scrollProgress * 50; // Zoom from 1x to 51x - much deeper zoom!
 
-    return () => {
-      window.removeEventListener("wheel", handleWheel);
-      window.removeEventListener("scroll", preventScroll);
-      window.removeEventListener("touchmove", preventScroll);
-      document.body.style.overflow = "auto";
-    };
-  }, [isZoomComplete, targetLetterIndex]);
-
-  const zoomScale = 1 + scrollProgress * 50; // Scale from 1 to 51x for extreme zoom into target letter
-  const imageOpacity = Math.min(scrollProgress * 2, 1); // Fade in as user scrolls
+  // Keep the name visible throughout most of the zoom
+  // It only fades at the very end when we're fully inside the image
+  const nameOpacity =
+    scrollProgress < 0.8
+      ? 1
+      : Math.max(0, 1 - ((scrollProgress - 0.8) / 0.2) * 1);
 
   return (
     <div className="relative">
-      {/* Hero Section with Image-Filled Text */}
+      {/* Fixed container for zoom effect */}
       <div
-        ref={heroRef}
-        className="relative h-screen flex items-center justify-center overflow-hidden bg-black"
+        ref={containerRef}
+        className="w-full h-screen overflow-hidden"
+        style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          zIndex: 10,
+        }}
       >
-        {/* Background Images - Only visible when zoomed */}
-        <div className="absolute inset-0">
-          {sampleImages.map((image, index) => (
-            <div
-              key={index}
-              className={`absolute inset-0 will-change-opacity ${
-                index === selectedImageIndex && scrollProgress > 0.9
-                  ? "opacity-100"
-                  : "opacity-0"
-              }`}
-              style={{
-                transition: "opacity 1.5s cubic-bezier(0.4, 0, 0.2, 1)",
-              }}
-            >
-              <Image
-                src={image}
-                alt={`Background ${index + 1}`}
-                fill
-                className="object-cover will-change-transform"
-                style={{
-                  transform: `scale(${
-                    index === selectedImageIndex ? zoomScale : 1
-                  })`,
-                  transition: "transform 0.8s cubic-bezier(0.4, 0, 0.2, 1)",
-                }}
-                priority={index === 0}
-              />
-            </div>
-          ))}
-        </div>
-
-        {/* Text with Multiple Images Fill */}
+        {/* Name with image-filled text - ZOOMING IN */}
         <div
-          ref={textRef}
-          className="relative z-10 text-center will-change-transform"
+          ref={nameRef}
+          className="absolute inset-0 flex items-center justify-center"
+          style={{
+            // Zoom IN to the name - the image cells naturally expand with it
+            transform: `scale(${zoomScale})`,
+            transformOrigin: "52% 48%", // Positioned roughly at the 'E' in MEREDITH
+            transition: "none",
+          }}
         >
-          <h1
-            className="text-6xl md:text-8xl lg:text-9xl font-bold leading-none select-none will-change-transform"
-            style={{
-              transform: `scale(${1 + scrollProgress * 3})`,
-              transition: "transform 0.1s ease-out",
-              textShadow: "0 0 20px rgba(0,0,0,0.5)",
-              transformOrigin: "center center",
-            }}
-          >
-            {/* MEREDITH */}
-            <div className="flex justify-center gap-2 mb-2">
-              {["M", "E", "R", "E", "D", "I", "T", "H"].map((letter, index) => {
-                const isTarget = index === targetLetterIndex;
-                const shouldHide = false; // Never hide letters - they disappear naturally due to zoom
-                const shouldFade = false; // Never fade letters
-
-                return (
-                  <span
-                    key={index}
-                    className="inline-block"
-                    style={{
-                      backgroundImage: `url(${
-                        sampleImages[index % sampleImages.length]
-                      })`,
-                      backgroundSize: "cover",
-                      backgroundPosition: "center",
-                      backgroundClip: "text",
-                      WebkitBackgroundClip: "text",
-                      WebkitTextFillColor: "transparent",
-                      filter: "drop-shadow(2px 2px 8px rgba(0,0,0,0.4))",
-                      transform: isTarget ? `scale(${zoomScale})` : "scale(1)",
-                      transition:
-                        "transform 0.8s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.5s ease-out",
-                      zIndex: isTarget ? 10 : 1,
-                      position: "relative",
-                      opacity: shouldHide
-                        ? 0
-                        : shouldFade
-                        ? Math.max(0, 1 - (scrollProgress - 0.95) * 20)
-                        : 1,
-                    }}
+          <div className="relative">
+            <svg viewBox="0 0 1200 300" className="w-[90vw] max-w-6xl h-auto">
+              <defs>
+                {/* Create patterns for each image */}
+                {images.map((img, idx) => (
+                  <pattern
+                    key={idx}
+                    id={`img-pattern-${idx}`}
+                    x="0"
+                    y="0"
+                    width="1"
+                    height="1"
                   >
-                    {letter}
-                  </span>
-                );
-              })}
-            </div>
+                    <image
+                      href={img}
+                      x="0"
+                      y="0"
+                      width="400"
+                      height="300"
+                      preserveAspectRatio="xMidYMid slice"
+                    />
+                  </pattern>
+                ))}
 
-            {/* VON FELDT */}
-            <div className="flex justify-center gap-2">
-              {["V", "O", "N", " ", "F", "E", "L", "D", "T"].map(
-                (letter, index) => {
-                  const letterIndex = index + 8; // Offset for second line
-                  const isTarget = letterIndex === targetLetterIndex;
-                  const shouldHide = false; // Never hide letters - they disappear naturally due to zoom
-                  const shouldFade = false; // Never fade letters
+                {/* Clip path for text */}
+                <clipPath id="text-clip">
+                  <text
+                    x="50%"
+                    y="45%"
+                    textAnchor="middle"
+                    fontSize="120"
+                    fontWeight="900"
+                    fontFamily="system-ui, -apple-system, sans-serif"
+                    letterSpacing="-0.02em"
+                  >
+                    MEREDITH
+                  </text>
+                  <text
+                    x="50%"
+                    y="75%"
+                    textAnchor="middle"
+                    fontSize="120"
+                    fontWeight="900"
+                    fontFamily="system-ui, -apple-system, sans-serif"
+                    letterSpacing="-0.02em"
+                  >
+                    VON FELDT
+                  </text>
+                </clipPath>
+              </defs>
+
+              {/* Grid of images clipped to text */}
+              <g clipPath="url(#text-clip)">
+                {images.map((_, idx) => {
+                  const cols = 4;
+                  const rows = 3;
+                  const col = idx % cols;
+                  const row = Math.floor(idx / cols);
+                  const cellWidth = 1200 / cols;
+                  const cellHeight = 300 / rows;
 
                   return (
-                    <span
-                      key={index}
-                      className="inline-block"
-                      style={{
-                        backgroundImage: `url(${
-                          sampleImages[letterIndex % sampleImages.length]
-                        })`,
-                        backgroundSize: "cover",
-                        backgroundPosition: "center",
-                        backgroundClip: "text",
-                        WebkitBackgroundClip: "text",
-                        WebkitTextFillColor: "transparent",
-                        filter: "drop-shadow(2px 2px 8px rgba(0,0,0,0.4))",
-                        transform: "none",
-                        transition: "opacity 0.5s ease-out",
-                        zIndex: isTarget ? 10 : 1,
-                        position: "relative",
-                        opacity: 1, // Always visible - they disappear naturally due to zoom
-                      }}
-                    >
-                      {letter}
-                    </span>
+                    <rect
+                      key={idx}
+                      x={col * cellWidth}
+                      y={row * cellHeight}
+                      width={cellWidth}
+                      height={cellHeight}
+                      fill={`url(#img-pattern-${idx})`}
+                    />
                   );
-                }
-              )}
-            </div>
-          </h1>
+                })}
+              </g>
+            </svg>
+          </div>
         </div>
-
-        {/* Overlay that appears as user scrolls */}
-        <div
-          className="absolute inset-0 bg-black transition-opacity duration-1000"
-          style={{ opacity: imageOpacity * 0.3 }}
-        />
       </div>
 
-      {/* Content Below the Fold */}
-      <div className="min-h-screen bg-white dark:bg-gray-900 p-8">
-        <div className="max-w-4xl mx-auto">
-          <h2 className="text-4xl font-bold mb-8 text-gray-900 dark:text-white">
-            Welcome to My Portfolio
-          </h2>
-          <div className="grid md:grid-cols-2 gap-8">
-            <div className="space-y-4">
-              <h3 className="text-2xl font-semibold text-gray-800 dark:text-gray-200">
+      {/* Spacer to enable scrolling - matches zoom phase height */}
+      <div style={{ height: "400vh" }} />
+
+      {/* Below the fold content */}
+      <div
+        className="relative z-20 min-h-screen bg-gradient-to-b from-transparent to-background"
+        style={{
+          marginTop: "-100vh",
+          paddingTop: "2rem",
+        }}
+      >
+        {/* Overlay to blend from image to content */}
+        <div
+          className="absolute inset-x-0 top-0 h-screen bg-gradient-to-b from-black/60 to-background pointer-events-none"
+          style={{
+            opacity: zoomComplete ? 1 : 0,
+          }}
+        />
+
+        <div className="relative container mx-auto px-6 py-20">
+          <div className="max-w-4xl mx-auto">
+            {/* Content section */}
+            <section className="mb-20">
+              <h2 className="text-5xl font-bold mb-8 text-foreground">
+                Welcome to My World
+              </h2>
+              <p className="text-xl text-foreground/80 leading-relaxed mb-6">
+                You've just experienced the journey through my name into the
+                world I create. Each letter contains a universe of experiences,
+                projects, and passions.
+              </p>
+              <p className="text-xl text-foreground/80 leading-relaxed">
+                I'm Meredith Von Feldt, a creative developer who believes in
+                making the web more beautiful, interactive, and memorable.
+              </p>
+            </section>
+
+            {/* Projects preview */}
+            <section className="mb-20">
+              <h3 className="text-4xl font-bold mb-12 text-foreground">
+                Featured Work
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {[1, 2, 3, 4].map((i) => (
+                  <div
+                    key={i}
+                    className="group relative overflow-hidden rounded-2xl aspect-square bg-foreground/5 hover:bg-foreground/10 transition-all duration-300"
+                  >
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="text-center">
+                        <div className="text-6xl font-bold text-foreground/20 group-hover:text-foreground/40 transition-colors">
+                          0{i}
+                        </div>
+                        <div className="text-lg text-foreground/60 mt-2">
+                          Project {i}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+
+            {/* About section */}
+            <section className="mb-20">
+              <h3 className="text-4xl font-bold mb-8 text-foreground">
                 About Me
               </h3>
-              <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
-                I'm a creative professional passionate about design and
-                technology. This interactive scrolling experience showcases my
-                love for innovative web experiences and attention to detail.
-              </p>
-            </div>
-            <div className="space-y-4">
-              <h3 className="text-2xl font-semibold text-gray-800 dark:text-gray-200">
-                My Work
-              </h3>
-              <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
-                I specialize in creating engaging digital experiences that tell
-                stories and connect with audiences. From web design to
-                interactive installations, I bring ideas to life through
-                thoughtful design and technical excellence.
-              </p>
-            </div>
-          </div>
-
-          <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-6">
-            {[1, 2, 3].map((item) => (
-              <div
-                key={item}
-                className="bg-gray-100 dark:bg-gray-800 rounded-lg p-6"
-              >
-                <h4 className="text-xl font-semibold mb-3 text-gray-900 dark:text-white">
-                  Project {item}
-                </h4>
-                <p className="text-gray-600 dark:text-gray-300">
-                  Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed
-                  do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+              <div className="space-y-6 text-lg text-foreground/80">
+                <p>
+                  I specialize in creating immersive web experiences that blur
+                  the line between technology and art. Every project is an
+                  opportunity to push the boundaries of what's possible on the
+                  web.
+                </p>
+                <p>
+                  My approach combines cutting-edge web technologies with
+                  thoughtful design to create experiences that are not just
+                  functional, but unforgettable.
                 </p>
               </div>
-            ))}
+            </section>
+
+            {/* Contact section */}
+            <section className="mb-20">
+              <h3 className="text-4xl font-bold mb-8 text-foreground">
+                Let's Connect
+              </h3>
+              <p className="text-xl text-foreground/80 mb-8">
+                Interested in working together or just want to say hi?
+              </p>
+              <div className="flex gap-6">
+                <a
+                  href="#"
+                  className="px-8 py-4 bg-foreground text-background rounded-full font-semibold hover:opacity-80 transition-opacity"
+                >
+                  Get in Touch
+                </a>
+                <a
+                  href="#"
+                  className="px-8 py-4 border-2 border-foreground/20 text-foreground rounded-full font-semibold hover:border-foreground/40 transition-colors"
+                >
+                  View Resume
+                </a>
+              </div>
+            </section>
           </div>
         </div>
       </div>
+
+      {/* Scroll indicator */}
+      {scrollProgress < 0.1 && (
+        <div
+          className="fixed bottom-10 left-1/2 -translate-x-1/2 z-30 text-foreground/60 text-sm animate-bounce"
+          style={{
+            opacity: 1 - scrollProgress * 10,
+          }}
+        >
+          <div className="flex flex-col items-center gap-2">
+            <span>Scroll to dive in</span>
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
+              <path d="M12 5v14M19 12l-7 7-7-7" />
+            </svg>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
