@@ -1,40 +1,118 @@
 "use client";
 
-/**
- * TO DO:
- * Images:
- * - Upload Images
- * - Make smaller so that when it zooms in to a letterit shows the full image not zoomed in
- * - Repeat images?
- *
- * Randomly change which image/letter is zoomed in on each scroll
- *
- * Right now it might be black when the image takes over, smooth that transition & figure out issue
- */
-
 import { useEffect, useRef, useState } from "react";
+
+// Generate a dense grid of small images that will be clipped to text
+const generateImageGrid = (imageCount: number) => {
+  const positions = [];
+  const imageSize = 20; // Small images for grid
+  const cols = 60; // 1200 / 20 = 60 columns
+  const rows = 15; // 300 / 20 = 15 rows
+
+  for (let row = 0; row < rows; row++) {
+    for (let col = 0; col < cols; col++) {
+      const x = col * imageSize;
+      const y = row * imageSize;
+      const imageIdx = (row * cols + col) % imageCount;
+
+      positions.push({ x, y, imageIdx, size: imageSize, row, col });
+    }
+  }
+
+  return positions;
+};
+
+// Better text detection using more precise bounds
+const isPositionInText = (x: number, y: number, size: number) => {
+  const centerX = x + size / 2;
+  const centerY = y + size / 2;
+
+  // MEREDITH: centered at x=600, baseline at y=135, height ~120px
+  // So roughly x=300-900, y=15-135
+  const inMeredith =
+    centerX >= 300 && centerX <= 900 && centerY >= 15 && centerY <= 135;
+
+  // VON FELDT: centered at x=600, baseline at y=225, height ~120px
+  // So roughly x=300-900, y=105-225
+  const inVonFeldt =
+    centerX >= 300 && centerX <= 900 && centerY >= 105 && centerY <= 225;
+
+  return inMeredith || inVonFeldt;
+};
+
+// Get positions that are actually within the text bounds
+const getTextPositions = (allPositions: any[]) => {
+  return allPositions.filter((pos) => {
+    return isPositionInText(pos.x, pos.y, pos.size);
+  });
+};
 
 export default function Home() {
   const [scrollProgress, setScrollProgress] = useState(0);
   const [zoomComplete, setZoomComplete] = useState(false);
+  const [targetPosition, setTargetPosition] = useState({ x: 50, y: 50 });
+  const [imagePositions, setImagePositions] = useState<
+    Array<{
+      x: number;
+      y: number;
+      imageIdx: number;
+      size: number;
+      row: number;
+      col: number;
+    }>
+  >([]);
   const containerRef = useRef<HTMLDivElement>(null);
   const nameRef = useRef<HTMLDivElement>(null);
+  const hasInitialized = useRef(false);
 
-  // Sample images - replace with your own
+  // Your personal images
   const images = [
-    "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=400&fit=crop",
-    "https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=400&h=400&fit=crop",
-    "https://images.unsplash.com/photo-1501594907352-04cda38ebc29?w=400&h=400&fit=crop",
-    "https://images.unsplash.com/photo-1472214103451-9374bd1c798e?w=400&h=400&fit=crop",
-    "https://images.unsplash.com/photo-1518837695005-2083093ee35b?w=400&h=400&fit=crop",
-    "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=400&h=400&fit=crop",
-    "https://images.unsplash.com/photo-1511593358241-7eea1f3c84e5?w=400&h=400&fit=crop",
-    "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=400&h=400&fit=crop",
-    "https://images.unsplash.com/photo-1426604966848-d7adac402bff?w=400&h=400&fit=crop",
-    "https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=400&h=400&fit=crop",
-    "https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?w=400&h=400&fit=crop",
-    "https://images.unsplash.com/photo-1473496169904-658ba7c44d8a?w=400&h=400&fit=crop",
+    "/images/bodhi_manda_zeno.jpeg",
+    "/images/dar_al_islam.jpeg",
+    "/images/dombes_barn.jpeg",
+    "/images/dombes_sheep.jpeg",
+    "/images/dombes.jpeg",
+    "/images/haute_cross.jpeg",
+    "/images/haute_joseph.jpeg",
+    "/images/haute_south.jpeg",
+    "/images/haute_terrace.jpeg",
+    "/images/jemez_soda_dam.jpeg",
+    "/images/sutra_hall_ext.jpeg",
+    "/images/taroudant_fountain.jpeg",
+    "/images/taroudant_mosque.jpeg",
+    "/images/taroudant_teapot.jpeg",
+    "/images/taroudant_walkers.jpeg",
+    "/images/zmm_buddha_hall.jpeg",
   ];
+
+  // Generate grid and select a target image on mount
+  useEffect(() => {
+    if (!hasInitialized.current) {
+      // Generate full grid of small images
+      const allPositions = generateImageGrid(images.length);
+      setImagePositions(allPositions);
+
+      // Get only positions within text bounds
+      const textPositions = getTextPositions(allPositions);
+
+      if (textPositions.length > 0) {
+        // Pick a random position from text positions to zoom to
+        const randomIdx = Math.floor(Math.random() * textPositions.length);
+        const targetPos = textPositions[randomIdx];
+
+        // Calculate center of the selected image
+        const centerX = targetPos.x + targetPos.size / 2;
+        const centerY = targetPos.y + targetPos.size / 2;
+
+        // Convert to percentage for transform-origin
+        const percentX = (centerX / 1200) * 100;
+        const percentY = (centerY / 300) * 100;
+
+        setTargetPosition({ x: percentX, y: percentY });
+      }
+      hasInitialized.current = true;
+    }
+  }, [images.length]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -67,16 +145,38 @@ export default function Home() {
       }
     };
 
+    // Reset target when scrolled back to top
+    const checkReset = () => {
+      if (window.scrollY < 10 && scrollProgress > 0.5) {
+        // User has scrolled back to top - pick new target from text positions
+        const textPositions = getTextPositions(imagePositions);
+
+        if (textPositions.length > 0) {
+          const randomIdx = Math.floor(Math.random() * textPositions.length);
+          const targetPos = textPositions[randomIdx];
+          const centerX = targetPos.x + targetPos.size / 2;
+          const centerY = targetPos.y + targetPos.size / 2;
+          const percentX = (centerX / 1200) * 100;
+          const percentY = (centerY / 300) * 100;
+          setTargetPosition({ x: percentX, y: percentY });
+        }
+      }
+    };
+
     window.addEventListener("scroll", handleScroll, { passive: true });
+    window.addEventListener("scroll", checkReset, { passive: true });
     handleScroll();
 
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("scroll", checkReset);
+    };
+  }, [scrollProgress, imagePositions]);
 
-  // Calculate zoom transformation
-  // Pure zoom effect - we're diving INTO the name and into one of its images
-  // Everything scales together at the same rate, creating a seamless zoom
-  const zoomScale = 1 + scrollProgress * 50; // Zoom from 1x to 51x - much deeper zoom!
+  // Calculate zoom transformation - zoom TO a specific small image tile
+  // With 20px images, we need significant zoom to fill the screen
+  // Screen is roughly 1200px wide, so we need 1200/20 = 60x zoom to fill width
+  const zoomScale = 1 + scrollProgress * 59; // Zoom from 1x to 60x to fill screen with 20px image
 
   // Keep the name visible throughout most of the zoom
   // It only fades at the very end when we're fully inside the image
@@ -103,36 +203,15 @@ export default function Home() {
           ref={nameRef}
           className="absolute inset-0 flex items-center justify-center"
           style={{
-            // Zoom IN to the name - the image cells naturally expand with it
+            // Zoom IN to a randomly selected point
             transform: `scale(${zoomScale})`,
-            transformOrigin: "52% 48%", // Positioned roughly at the 'E' in MEREDITH
+            transformOrigin: `${targetPosition.x}% ${targetPosition.y}%`,
             transition: "none",
           }}
         >
           <div className="relative">
             <svg viewBox="0 0 1200 300" className="w-[90vw] max-w-6xl h-auto">
               <defs>
-                {/* Create patterns for each image */}
-                {images.map((img, idx) => (
-                  <pattern
-                    key={idx}
-                    id={`img-pattern-${idx}`}
-                    x="0"
-                    y="0"
-                    width="1"
-                    height="1"
-                  >
-                    <image
-                      href={img}
-                      x="0"
-                      y="0"
-                      width="400"
-                      height="300"
-                      preserveAspectRatio="xMidYMid slice"
-                    />
-                  </pattern>
-                ))}
-
                 {/* Clip path for text */}
                 <clipPath id="text-clip">
                   <text
@@ -160,27 +239,19 @@ export default function Home() {
                 </clipPath>
               </defs>
 
-              {/* Grid of images clipped to text */}
+              {/* Grid of small images clipped to text */}
               <g clipPath="url(#text-clip)">
-                {images.map((_, idx) => {
-                  const cols = 4;
-                  const rows = 3;
-                  const col = idx % cols;
-                  const row = Math.floor(idx / cols);
-                  const cellWidth = 1200 / cols;
-                  const cellHeight = 300 / rows;
-
-                  return (
-                    <rect
-                      key={idx}
-                      x={col * cellWidth}
-                      y={row * cellHeight}
-                      width={cellWidth}
-                      height={cellHeight}
-                      fill={`url(#img-pattern-${idx})`}
-                    />
-                  );
-                })}
+                {imagePositions.map((pos, idx) => (
+                  <image
+                    key={idx}
+                    href={images[pos.imageIdx]}
+                    x={pos.x}
+                    y={pos.y}
+                    width={pos.size}
+                    height={pos.size}
+                    preserveAspectRatio="xMidYMid slice"
+                  />
+                ))}
               </g>
             </svg>
           </div>
@@ -189,6 +260,8 @@ export default function Home() {
 
       {/* Spacer to enable scrolling - matches zoom phase height */}
       <div style={{ height: "400vh" }} />
+
+      {/* ######################################################### */}
 
       {/* Below the fold content */}
       <div
@@ -296,30 +369,6 @@ export default function Home() {
           </div>
         </div>
       </div>
-
-      {/* Scroll indicator */}
-      {scrollProgress < 0.1 && (
-        <div
-          className="fixed bottom-10 left-1/2 -translate-x-1/2 z-30 text-foreground/60 text-sm animate-bounce"
-          style={{
-            opacity: 1 - scrollProgress * 10,
-          }}
-        >
-          <div className="flex flex-col items-center gap-2">
-            <span>Scroll to dive in</span>
-            <svg
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-            >
-              <path d="M12 5v14M19 12l-7 7-7-7" />
-            </svg>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
