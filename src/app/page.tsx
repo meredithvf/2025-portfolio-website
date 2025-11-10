@@ -1,50 +1,44 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback, useMemo } from "react";
 
 // Generate a dense grid of small images that will be clipped to text
+// Only generate images within the text bounds (MEREDITH VON FELDT area)
 const generateImageGrid = (imageCount: number) => {
   const positions = [];
-  const imageSize = 20; // Small images for grid
-  const cols = 60; // 1200 / 20 = 60 columns
-  const rows = 15; // 300 / 20 = 15 rows
+  const imageWidth = 30; // Small images for grid
+  const imageHeight = 20; // Small images for grid
+
+  // Text bounds: MEREDITH VON FELDT, ideally this is not hard coded but corresponds to where the text is
+  const textMinX = 290;
+  const textMaxX = 910;
+  const textMinY = 50;
+  const textMaxY = 225;
+
+  // Calculate number of columns and rows needed to cover the text area
+  // Use ceil to ensure we include images that extend beyond the bounds
+  const cols = Math.ceil((textMaxX - textMinX) / imageWidth);
+  const rows = Math.ceil((textMaxY - textMinY) / imageHeight);
 
   for (let row = 0; row < rows; row++) {
     for (let col = 0; col < cols; col++) {
-      const x = col * imageSize;
-      const y = row * imageSize;
+      const x = textMinX + col * imageWidth;
+      const y = textMinY + row * imageHeight;
       const imageIdx = (row * cols + col) % imageCount;
 
-      positions.push({ x, y, imageIdx, size: imageSize, row, col });
+      positions.push({
+        x,
+        y,
+        imageIdx,
+        imageWidth: imageWidth,
+        imageHeight: imageHeight,
+        row,
+        col,
+      });
     }
   }
 
   return positions;
-};
-
-// Better text detection using more precise bounds
-const isPositionInText = (x: number, y: number, size: number) => {
-  const centerX = x + size / 2;
-  const centerY = y + size / 2;
-
-  // MEREDITH: centered at x=600, baseline at y=135, height ~120px
-  // So roughly x=300-900, y=15-135
-  const inMeredith =
-    centerX >= 300 && centerX <= 900 && centerY >= 15 && centerY <= 135;
-
-  // VON FELDT: centered at x=600, baseline at y=225, height ~120px
-  // So roughly x=300-900, y=105-225
-  const inVonFeldt =
-    centerX >= 300 && centerX <= 900 && centerY >= 105 && centerY <= 225;
-
-  return inMeredith || inVonFeldt;
-};
-
-// Get positions that are actually within the text bounds
-const getTextPositions = (allPositions: any[]) => {
-  return allPositions.filter((pos) => {
-    return isPositionInText(pos.x, pos.y, pos.size);
-  });
 };
 
 export default function Home() {
@@ -56,161 +50,310 @@ export default function Home() {
       x: number;
       y: number;
       imageIdx: number;
-      size: number;
+      imageWidth: number;
+      imageHeight: number;
       row: number;
       col: number;
     }>
   >([]);
+  const [imagesLoaded, setImagesLoaded] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const nameRef = useRef<HTMLDivElement>(null);
+  const svgRef = useRef<SVGSVGElement>(null);
   const hasInitialized = useRef(false);
+  const previousScrollProgress = useRef(0);
+  const hasScrolledDown = useRef(false);
+  const imageCache = useRef<Set<string>>(new Set());
+  const loadedImagesCount = useRef(0);
+
+  // Visible positions for zoom targets (in viewBox coordinates)
+  const visiblePositions = [
+    { x: 410, y: 50 },
+    { x: 440, y: 50 },
+    { x: 560, y: 50 },
+    { x: 590, y: 50 },
+    { x: 740, y: 50 },
+    { x: 770, y: 50 },
+  ];
+
+  // Helper function to calculate transform-origin percentage from viewBox coordinates
+  const calculateTargetPosition = useCallback((): {
+    x: number;
+    y: number;
+  } | null => {
+    if (!svgRef.current || !nameRef.current) {
+      return null;
+    }
+
+    const randomIdx = Math.floor(Math.random() * visiblePositions.length);
+    const targetPos = visiblePositions[randomIdx];
+    const viewBoxX = targetPos.x + 30 / 2;
+    const viewBoxY = targetPos.y + 20 / 2;
+
+    // Get actual rendered dimensions of the SVG
+    const svgRect = svgRef.current.getBoundingClientRect();
+    const svgViewBox = svgRef.current.viewBox.baseVal;
+    const svgViewBoxWidth = svgViewBox.width || 1200;
+    const svgViewBoxHeight = svgViewBox.height || 300;
+
+    // Get the container div dimensions (the element being transformed)
+    const containerRect = nameRef.current.getBoundingClientRect();
+
+    // Calculate the position of the target point in the SVG's coordinate system
+    // Then map it to the container's coordinate system
+    const scaleX = svgRect.width / svgViewBoxWidth;
+    const scaleY = svgRect.height / svgViewBoxHeight;
+
+    // Position of target in SVG's rendered coordinates
+    const svgX = viewBoxX * scaleX;
+    const svgY = viewBoxY * scaleY;
+
+    // Position relative to the container (accounting for centering)
+    // The SVG is centered in the container, so we need to find its offset
+    const svgOffsetX = svgRect.left - containerRect.left;
+    const svgOffsetY = svgRect.top - containerRect.top;
+
+    // Final position relative to container
+    const containerX = svgOffsetX + svgX;
+    const containerY = svgOffsetY + svgY;
+
+    // Convert to percentage for transform-origin
+    const percentX = (containerX / containerRect.width) * 100;
+    const percentY = (containerY / containerRect.height) * 100;
+
+    return { x: percentX, y: percentY };
+  }, [visiblePositions]);
 
   // Your personal images
-  const images = [
-    "/images/bodhi_manda_zeno.jpeg",
-    "/images/dar_al_islam.jpeg",
-    "/images/dombes_barn.jpeg",
-    "/images/dombes_sheep.jpeg",
-    "/images/dombes.jpeg",
-    "/images/haute_cross.jpeg",
-    "/images/haute_joseph.jpeg",
-    "/images/haute_south.jpeg",
-    "/images/haute_terrace.jpeg",
-    "/images/jemez_soda_dam.jpeg",
-    "/images/sutra_hall_ext.jpeg",
-    "/images/taroudant_fountain.jpeg",
-    "/images/taroudant_mosque.jpeg",
-    "/images/taroudant_teapot.jpeg",
-    "/images/taroudant_walkers.jpeg",
-    "/images/zmm_buddha_hall.jpeg",
-  ];
+  const images = useMemo(
+    () => [
+      "/images/bodhi_hot_springs.jpeg",
+      "/images/bodhi_manda_zeno.jpeg",
+      "/images/dar_al_islam.jpeg",
+      "/images/dombes_barn.jpeg",
+      "/images/dombes_sheep.jpeg",
+      "/images/dombes.jpeg",
+      "/images/haute_bateliere.jpeg",
+      "/images/haute_cloister.jpeg",
+      "/images/haute_cove.jpeg",
+      "/images/haute_cross.jpeg",
+      "/images/haute_joseph.jpeg",
+      "/images/haute_last_supper.jpeg",
+      "/images/haute_pantry.jpeg",
+      "/images/haute_south.jpeg",
+      "/images/haute_stained_glass.jpeg",
+      "/images/haute_terrace.jpeg",
+      "/images/haute_wysteria.jpeg",
+      "/images/jemez_soda_dam.jpeg",
+      "/images/jemez_valley.jpeg",
+      "/images/oriyoki.jpeg",
+      "/images/rome_lds_visitor_center.jpeg",
+      "/images/sutra_hall_ext.jpeg",
+      "/images/taroudant_biking_in_rain.jpeg",
+      "/images/taroudant_fountain.jpeg",
+      "/images/taroudant_getting_treats.jpeg",
+      "/images/taroudant_mosque.jpeg",
+      "/images/taroudant_selling_oranges.jpeg",
+      "/images/taroudant_tannery.jpeg",
+      "/images/taroudant_teapot.jpeg",
+      "/images/taroudant_walkers.jpeg",
+      "/images/zmm_buddha_hall.jpeg",
+    ],
+    []
+  );
+
+  // Preload all images to prevent jumps
+  useEffect(() => {
+    let cancelled = false;
+    const loadImage = (src: string): Promise<void> => {
+      return new Promise((resolve, reject) => {
+        if (imageCache.current.has(src)) {
+          resolve();
+          return;
+        }
+        const img = new Image();
+        img.onload = () => {
+          if (!cancelled) {
+            imageCache.current.add(src);
+            loadedImagesCount.current += 1;
+            if (loadedImagesCount.current === images.length) {
+              setImagesLoaded(true);
+            }
+            resolve();
+          }
+        };
+        img.onerror = reject;
+        img.src = src;
+      });
+    };
+
+    // Preload all images
+    Promise.all(images.map(loadImage)).catch((err) => {
+      console.error("Error preloading images:", err);
+      // Still set as loaded to allow rendering
+      setImagesLoaded(true);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [images]);
 
   // Generate grid and select a target image on mount
   useEffect(() => {
-    if (!hasInitialized.current) {
-      // Generate full grid of small images
+    if (!hasInitialized.current && imagesLoaded) {
+      // Generate grid of small images (now only within text bounds)
       const allPositions = generateImageGrid(images.length);
       setImagePositions(allPositions);
 
-      // Get only positions within text bounds
-      const textPositions = getTextPositions(allPositions);
-
-      if (textPositions.length > 0) {
-        // Pick a random position from text positions to zoom to
-        const randomIdx = Math.floor(Math.random() * textPositions.length);
-        const targetPos = textPositions[randomIdx];
-
-        // Calculate center of the selected image
-        const centerX = targetPos.x + targetPos.size / 2;
-        const centerY = targetPos.y + targetPos.size / 2;
-
-        // Convert to percentage for transform-origin
-        const percentX = (centerX / 1200) * 100;
-        const percentY = (centerY / 300) * 100;
-
-        setTargetPosition({ x: percentX, y: percentY });
-      }
-      hasInitialized.current = true;
+      // Wait for next frame to ensure SVG is rendered
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          if (allPositions.length > 0) {
+            const target = calculateTargetPosition();
+            if (target) {
+              setTargetPosition(target);
+            }
+          }
+          hasInitialized.current = true;
+        });
+      });
     }
-  }, [images.length]);
+  }, [images.length, imagesLoaded, calculateTargetPosition]);
 
   useEffect(() => {
+    let ticking = false;
+    let rafId: number | null = null;
+
     const handleScroll = () => {
-      const scrollTop = window.scrollY;
-      const windowHeight = window.innerHeight;
+      if (!ticking) {
+        rafId = requestAnimationFrame(() => {
+          const scrollTop = window.scrollY;
+          const windowHeight = window.innerHeight;
 
-      // Zoom phase: 0 to 3 viewport heights (longer zoom duration)
-      const zoomPhaseHeight = windowHeight * 3;
+          // Zoom phase: 0 to 3 viewport heights (longer zoom duration)
+          const zoomPhaseHeight = windowHeight * 3;
 
-      if (scrollTop < zoomPhaseHeight) {
-        // During zoom phase
-        const progress = Math.min(scrollTop / zoomPhaseHeight, 1);
-        setScrollProgress(progress);
-        setZoomComplete(false);
+          let newProgress: number;
+          if (scrollTop < zoomPhaseHeight) {
+            // During zoom phase
+            newProgress = Math.min(scrollTop / zoomPhaseHeight, 1);
+            setScrollProgress(newProgress);
+            setZoomComplete(false);
 
-        // Prevent default scroll during zoom phase
-        if (containerRef.current) {
-          containerRef.current.style.position = "fixed";
-          containerRef.current.style.top = "0";
-        }
-      } else {
-        // After zoom completes
-        setScrollProgress(1);
-        setZoomComplete(true);
+            // Prevent default scroll during zoom phase
+            if (containerRef.current) {
+              containerRef.current.style.position = "fixed";
+              containerRef.current.style.top = "0";
+            }
+          } else {
+            // After zoom completes
+            newProgress = 1;
+            setScrollProgress(newProgress);
+            setZoomComplete(true);
 
-        if (containerRef.current) {
-          containerRef.current.style.position = "absolute";
-          containerRef.current.style.top = "0";
-        }
-      }
-    };
+            if (containerRef.current) {
+              containerRef.current.style.position = "absolute";
+              containerRef.current.style.top = "0";
+            }
+          }
 
-    // Reset target when scrolled back to top
-    const checkReset = () => {
-      if (window.scrollY < 10 && scrollProgress > 0.5) {
-        // User has scrolled back to top - pick new target from text positions
-        const textPositions = getTextPositions(imagePositions);
+          // Track if user has scrolled down
+          if (newProgress > 0.1) {
+            hasScrolledDown.current = true;
+          }
 
-        if (textPositions.length > 0) {
-          const randomIdx = Math.floor(Math.random() * textPositions.length);
-          const targetPos = textPositions[randomIdx];
-          const centerX = targetPos.x + targetPos.size / 2;
-          const centerY = targetPos.y + targetPos.size / 2;
-          const percentX = (centerX / 1200) * 100;
-          const percentY = (centerY / 300) * 100;
-          setTargetPosition({ x: percentX, y: percentY });
-        }
+          // Reset target when scrolled back to top
+          // Check if we were previously scrolled down and now at top
+          if (scrollTop < 10 && hasScrolledDown.current) {
+            // User has scrolled back to top - pick new target from visible positions
+            if (imagePositions.length > 0) {
+              const target = calculateTargetPosition();
+              if (target) {
+                setTargetPosition(target);
+              }
+            }
+            // Reset the flag so we don't keep resetting while at top
+            hasScrolledDown.current = false;
+          }
+
+          // Update previous scroll progress
+          previousScrollProgress.current = newProgress;
+
+          ticking = false;
+        });
+        ticking = true;
       }
     };
 
     window.addEventListener("scroll", handleScroll, { passive: true });
-    window.addEventListener("scroll", checkReset, { passive: true });
     handleScroll();
 
     return () => {
       window.removeEventListener("scroll", handleScroll);
-      window.removeEventListener("scroll", checkReset);
+      if (rafId !== null) {
+        cancelAnimationFrame(rafId);
+      }
     };
-  }, [scrollProgress, imagePositions]);
+  }, [imagePositions, calculateTargetPosition]);
 
   // Calculate zoom transformation - zoom TO a specific small image tile
-  // With 20px images, we need significant zoom to fill the screen
-  // Screen is roughly 1200px wide, so we need 1200/20 = 60x zoom to fill width
-  const zoomScale = 1 + scrollProgress * 59; // Zoom from 1x to 60x to fill screen with 20px image
+  // Screen is roughly 1200px wide, so we need 1200/30 = 60x zoom to fill width
+  const zoomScale = useMemo(() => 1 + scrollProgress * 50, [scrollProgress]); // Zoom from 1x to 40x to fill screen with 30px image
 
   // Keep the name visible throughout most of the zoom
   // It only fades at the very end when we're fully inside the image
-  const nameOpacity =
-    scrollProgress < 0.8
-      ? 1
-      : Math.max(0, 1 - ((scrollProgress - 0.8) / 0.2) * 1);
+  const nameOpacity = useMemo(
+    () =>
+      scrollProgress < 0.8
+        ? 1
+        : Math.max(0, 1 - ((scrollProgress - 0.8) / 0.2) * 1),
+    [scrollProgress]
+  );
 
   return (
     <div className="relative">
+      {/* Loading indicator */}
+      {!imagesLoaded && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background">
+          <div className="text-foreground/60">Loading images...</div>
+        </div>
+      )}
+
       {/* Fixed container for zoom effect */}
       <div
         ref={containerRef}
-        className="w-full h-screen overflow-hidden"
+        className="w-full h-screen overflow-hidden "
         style={{
           position: "fixed",
           top: 0,
           left: 0,
           zIndex: 10,
+          backfaceVisibility: "hidden",
+          transform: "translate3d(0, 0, 0)",
+          opacity: imagesLoaded ? 1 : 0,
+          transition: "opacity 0.3s ease-in",
         }}
       >
         {/* Name with image-filled text - ZOOMING IN */}
         <div
           ref={nameRef}
-          className="absolute inset-0 flex items-center justify-center"
+          className="absolute inset-0 flex items-center justify-center "
           style={{
             // Zoom IN to a randomly selected point
-            transform: `scale(${zoomScale})`,
+            transform: `translate3d(0, 0, 0) scale(${zoomScale})`,
             transformOrigin: `${targetPosition.x}% ${targetPosition.y}%`,
             transition: "none",
+            backfaceVisibility: "hidden",
+            perspective: 1000,
           }}
         >
           <div className="relative">
-            <svg viewBox="0 0 1200 300" className="w-[90vw] max-w-6xl h-auto">
+            <svg
+              ref={svgRef}
+              viewBox="0 0 1200 300"
+              className="w-[90vw] max-w-6xl h-auto"
+            >
               <defs>
                 {/* Clip path for text */}
                 <clipPath id="text-clip">
@@ -243,12 +386,12 @@ export default function Home() {
               <g clipPath="url(#text-clip)">
                 {imagePositions.map((pos, idx) => (
                   <image
-                    key={idx}
+                    key={`${pos.row}-${pos.col}-${pos.imageIdx}`}
                     href={images[pos.imageIdx]}
                     x={pos.x}
                     y={pos.y}
-                    width={pos.size}
-                    height={pos.size}
+                    width={pos.imageWidth}
+                    height={pos.imageHeight}
                     preserveAspectRatio="xMidYMid slice"
                   />
                 ))}

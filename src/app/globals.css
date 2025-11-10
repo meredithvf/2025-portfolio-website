@@ -67,3 +67,15 @@ body {
 .will-change-opacity {
   will-change: opacity;
 }
+
+/* Image quality optimizations - ensure high quality rendering */
+svg {
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+  image-rendering: auto;
+}
+
+svg image {
+  image-rendering: auto;
+  /* Let browser use best quality for photos */
+}
