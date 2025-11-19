@@ -1,6 +1,10 @@
 "use client";
 
 import { useEffect, useRef, useState, useMemo } from "react";
+import Work from "@/components/Work";
+import Resume from "@/components/Resume";
+import Contact from "@/components/Contact";
+import { projects } from "@/data/projects";
 
 export default function Home() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -345,24 +349,82 @@ export default function Home() {
           zIndex: 1,
         }}
       >
-        <div className="relative container mx-auto px-6 py-20">
-          <div className="max-w-4xl mx-auto">
-            <div
-              style={{
-                width: "100%",
-                height: "100vh",
-                backgroundColor: "var(--background)",
-                padding: "2rem",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                color: "var(--foreground)",
-              }}
-            >
-              <div>Below the fold content goes here</div>
+        {/* About Me & Table of Contents Section */}
+        <section className="relative w-full py-20 px-6">
+          <div className="max-w-7xl mx-auto">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20">
+              {/* About Me - Left Side */}
+              <div>
+                <h2 className="text-4xl md:text-5xl font-light mb-4">
+                  About Me
+                </h2>
+                <div className="w-24 h-px bg-foreground/20 mt-8 mb-8"></div>
+                <div className="space-y-4 text-lg text-foreground/70 leading-relaxed">
+                  <p>
+                    Welcome to my portfolio. I'm a creative professional
+                    passionate about building meaningful digital experiences
+                    through thoughtful design and innovative development.
+                  </p>
+                  <p>
+                    With a focus on user-centered design and clean, efficient
+                    code, I bring ideas to life that are both beautiful and
+                    functional. Explore my work below to see some of the
+                    projects I've had the pleasure of working on.
+                  </p>
+                </div>
+              </div>
+
+              {/* Table of Contents - Right Side */}
+              <div className="flex justify-center">
+                <nav className="space-y-1">
+                  <a
+                    href="#work"
+                    className="block py-4 transition-colors duration-300 group"
+                  >
+                    <div className="flex items-center justify-start gap-4 toc-item">
+                      <span className="text-4xl md:text-5xl font-light group-hover:text-foreground transition-colors duration-300">
+                        Work
+                      </span>
+                      <span className="text-4xl md:text-5xl text-foreground/30 group-hover:text-foreground/60 transition-colors duration-300">
+                        →
+                      </span>
+                    </div>
+                  </a>
+                  <a
+                    href="#resume"
+                    className="block py-4 transition-colors duration-300 group"
+                  >
+                    <div className="flex items-center justify-start gap-4 toc-item">
+                      <span className="text-4xl md:text-5xl font-light group-hover:text-foreground transition-colors duration-300">
+                        Resume
+                      </span>
+                      <span className="text-4xl md:text-5xl text-foreground/30 group-hover:text-foreground/60 transition-colors duration-300">
+                        →
+                      </span>
+                    </div>
+                  </a>
+                  <a
+                    href="#contact"
+                    className="block py-4 transition-colors duration-300 group"
+                  >
+                    <div className="flex items-center justify-start gap-4 toc-item">
+                      <span className="text-4xl md:text-5xl font-light group-hover:text-foreground transition-colors duration-300">
+                        Contact
+                      </span>
+                      <span className="text-4xl md:text-5xl text-foreground/30 group-hover:text-foreground/60 transition-colors duration-300">
+                        →
+                      </span>
+                    </div>
+                  </a>
+                </nav>
+              </div>
             </div>
           </div>
-        </div>
+        </section>
+
+        <Work projects={projects} />
+        <Resume />
+        <Contact />
       </div>
     </div>
   );

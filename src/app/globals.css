@@ -54,3 +54,22 @@ body::-webkit-scrollbar {
   background: rgba(0, 0, 0, 0.1);
   color: inherit;
 }
+
+/* Table of contents hover animation */
+@keyframes tug-right {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(8px);
+  }
+}
+
+.toc-item {
+  animation: none;
+}
+
+.group:hover .toc-item {
+  animation: tug-right 0.6s ease-in-out infinite;
+}
