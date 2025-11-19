@@ -70,12 +70,31 @@ body {
 
 /* Image quality optimizations - ensure high quality rendering */
 svg {
-  image-rendering: -webkit-optimize-contrast;
-  image-rendering: crisp-edges;
+  /* Use auto for smooth photo rendering (not crisp-edges which is for pixel art) */
   image-rendering: auto;
+  /* Force high-quality rendering */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 svg image {
+  /* Use auto for smooth, high-quality photo rendering during scaling */
   image-rendering: auto;
-  /* Let browser use best quality for photos */
+  /* Prevent quality degradation during hardware acceleration */
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+
+/* Optimize background images for smooth zooming */
+div[style*="backgroundImage"] {
+  /* Force GPU acceleration for background images */
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  /* Optimize rendering during transforms */
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  /* Smooth image rendering */
+  image-rendering: auto;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
