@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 
 export default function Home() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -9,6 +9,10 @@ export default function Home() {
   const lowResImageRef = useRef<HTMLImageElement | null>(null);
   const highResImageRef = useRef<HTMLImageElement | null>(null);
   const [imageLoaded, setImageLoaded] = useState(false);
+  const [scrollProgress, setScrollProgress] = useState(0);
+  const [zoomComplete, setZoomComplete] = useState(false);
+  const [showCaption, setShowCaption] = useState(false);
+  const [captionRendered, setCaptionRendered] = useState(false);
 
   // --- CONFIG ------------------------------------------------------------
   // Adjust to fit your exported PNG resolution
@@ -18,6 +22,9 @@ export default function Home() {
   // Initial zoom (1.0 = fit screen)
   const MIN_ZOOM = 1;
   const MAX_ZOOM = 40;
+
+  // Caption text
+  const CAPTION_TEXT = "Caption text here";
 
   // Target zoom hotspots (percent of image)
   const TARGETS = {
@@ -57,6 +64,11 @@ export default function Home() {
     };
   }, []);
 
+  // Calculate zoom based on scroll progress
+  const zoomScale = useMemo(() => {
+    return MIN_ZOOM + scrollProgress * (MAX_ZOOM - MIN_ZOOM);
+  }, [scrollProgress]);
+
   // Setup canvas and zoom handling
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -71,18 +83,18 @@ export default function Home() {
 
     if (!ctx) return;
 
-    let zoom = 1;
     let target = TARGETS.E;
     let ticking = false;
     let animationFrameId: number | null = null;
 
-    // Set canvas size to match container
+    // Set canvas size to match viewport (always 100vw x 100vh)
     const resizeCanvas = () => {
-      const rect = container.getBoundingClientRect();
-      canvas.width = rect.width * window.devicePixelRatio;
-      canvas.height = rect.height * window.devicePixelRatio;
-      canvas.style.width = `${rect.width}px`;
-      canvas.style.height = `${rect.height}px`;
+      const width = window.innerWidth;
+      const height = window.innerHeight;
+      canvas.width = width * window.devicePixelRatio;
+      canvas.height = height * window.devicePixelRatio;
+      canvas.style.width = `${width}px`;
+      canvas.style.height = `${height}px`;
       ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
     };
 
@@ -97,8 +109,10 @@ export default function Home() {
       const canvasWidth = canvas.width / window.devicePixelRatio;
       const canvasHeight = canvas.height / window.devicePixelRatio;
 
-      // Clear canvas
-      ctx.fillStyle = "#000000";
+      // Clear canvas with container's background color
+      const computedStyle = window.getComputedStyle(container);
+      const backgroundColor = computedStyle.backgroundColor || "#ece7c1";
+      ctx.fillStyle = backgroundColor;
       ctx.fillRect(0, 0, canvasWidth, canvasHeight);
 
       // Calculate image dimensions to maintain aspect ratio
@@ -123,7 +137,7 @@ export default function Home() {
       }
 
       // Calculate zoom transform
-      const scale = zoom;
+      const scale = zoomScale;
       const centerX = (target.x / 100) * drawWidth + offsetX;
       const centerY = (target.y / 100) * drawHeight + offsetY;
 
@@ -144,92 +158,212 @@ export default function Home() {
       ctx.restore();
     };
 
-    // Initial draw
-    draw();
+    // Draw whenever zoom changes
+    if (!ticking) {
+      ticking = true;
+      animationFrameId = requestAnimationFrame(() => {
+        draw();
+        ticking = false;
+      });
+    }
 
-    const onScroll = (e: WheelEvent) => {
-      e.preventDefault();
-
-      const delta = e.deltaY > 0 ? 1.05 : 0.95;
-      const newZoom = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, zoom * delta));
-
-      // Switch to high-res image if zooming in past threshold
-      if (
-        newZoom > HIGH_RES_ZOOM_THRESHOLD &&
-        zoom <= HIGH_RES_ZOOM_THRESHOLD
-      ) {
-        if (highResImageRef.current) {
-          imageRef.current = highResImageRef.current;
-          draw();
-        }
+    // Switch to high-res image if zooming in past threshold
+    if (
+      zoomScale > HIGH_RES_ZOOM_THRESHOLD &&
+      imageRef.current === lowResImageRef.current
+    ) {
+      if (highResImageRef.current) {
+        imageRef.current = highResImageRef.current;
+        draw();
       }
+    }
 
-      // Switch back to low-res if zooming out past threshold
-      if (
-        newZoom <= HIGH_RES_ZOOM_THRESHOLD &&
-        zoom > HIGH_RES_ZOOM_THRESHOLD
-      ) {
-        if (lowResImageRef.current) {
-          imageRef.current = lowResImageRef.current;
-          draw();
-        }
+    // Switch back to low-res if zooming out past threshold
+    if (
+      zoomScale <= HIGH_RES_ZOOM_THRESHOLD &&
+      imageRef.current === highResImageRef.current
+    ) {
+      if (lowResImageRef.current) {
+        imageRef.current = lowResImageRef.current;
+        draw();
       }
-
-      zoom = newZoom;
-
-      if (!ticking) {
-        ticking = true;
-        animationFrameId = requestAnimationFrame(() => {
-          draw();
-          ticking = false;
-        });
-      }
-    };
-
-    window.addEventListener("wheel", onScroll, { passive: false });
+    }
 
     return () => {
-      window.removeEventListener("wheel", onScroll);
       window.removeEventListener("resize", resizeCanvas);
       if (animationFrameId !== null) {
         cancelAnimationFrame(animationFrameId);
       }
     };
-  }, [imageLoaded]);
+  }, [imageLoaded, zoomScale]);
+
+  // Handle scroll events
+  useEffect(() => {
+    let ticking = false;
+    let rafId: number | null = null;
+
+    const handleScroll = () => {
+      if (!ticking) {
+        rafId = requestAnimationFrame(() => {
+          const scrollTop = window.scrollY;
+          const windowHeight = window.innerHeight;
+
+          // Zoom phase: 0 to 3 viewport heights (longer zoom duration)
+          const zoomPhaseHeight = windowHeight * 3;
+
+          let newProgress: number;
+          let newZoomComplete: boolean;
+
+          if (scrollTop < zoomPhaseHeight) {
+            // During zoom phase
+            newProgress = Math.min(scrollTop / zoomPhaseHeight, 1);
+            newZoomComplete = false;
+          } else {
+            // After zoom completes
+            newProgress = 1;
+            newZoomComplete = true;
+          }
+
+          setScrollProgress(newProgress);
+
+          // Show caption when zoom is almost complete (85% progress)
+          const CAPTION_THRESHOLD = 0.85;
+          if (newProgress >= CAPTION_THRESHOLD) {
+            setShowCaption(true);
+            setCaptionRendered(true); // Keep in DOM once shown
+          } else {
+            setShowCaption(false);
+          }
+
+          // Update zoom complete state
+          setZoomComplete((prevZoomComplete) => {
+            if (newZoomComplete && !prevZoomComplete) {
+              return true;
+            }
+            if (!newZoomComplete && prevZoomComplete) {
+              return false;
+            }
+            return prevZoomComplete;
+          });
+
+          ticking = false;
+        });
+        ticking = true;
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    handleScroll(); // Initial call
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      if (rafId !== null) {
+        cancelAnimationFrame(rafId);
+      }
+    };
+  }, []);
 
   return (
-    <div
-      ref={containerRef}
-      style={{
-        width: "100vw",
-        height: "100vh",
-        overflow: "hidden",
-        backgroundColor: "black",
-        position: "relative",
-      }}
-    >
-      <canvas
-        ref={canvasRef}
+    <div className="relative">
+      {/* Spacer to enable scrolling during zoom phase (3 viewport heights) */}
+      <div style={{ height: "300vh" }} />
+
+      {/* Photo container - fixed during zoom, relative after zoom (scrolls with page) */}
+      <div
+        ref={containerRef}
         style={{
-          display: "block",
-          width: "100%",
-          height: "100%",
-          imageRendering: "auto",
+          width: "100vw",
+          height: "100vh",
+          overflow: "hidden",
+          position: zoomComplete ? "relative" : "fixed",
+          top: zoomComplete ? "auto" : 0,
+          left: 0,
+          zIndex: zoomComplete ? 1 : 10,
+          backfaceVisibility: "hidden",
+          transform: "translate3d(0, 0, 0)",
+          opacity: imageLoaded ? 1 : 0,
+          transition: "opacity 0.3s ease-in",
         }}
-      />
-      {!imageLoaded && (
-        <div
+      >
+        <canvas
+          ref={canvasRef}
           style={{
+            display: "block",
+            width: "100%",
+            height: "100%",
+            imageRendering: "auto",
             position: "absolute",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            color: "white",
+            top: 0,
+            left: 0,
+            zIndex: 1,
           }}
-        >
-          Loading...
+        />
+        {captionRendered && (
+          <div
+            className="caption"
+            style={{
+              position: "absolute",
+              bottom: "2rem",
+              right: "2rem",
+              padding: "1rem 1.5rem",
+              backgroundColor: "#1a1a18",
+              color: "#ece7c1",
+              borderRadius: "8px",
+              maxWidth: "300px",
+              fontSize: "0.9rem",
+              lineHeight: "1.4",
+              opacity: showCaption ? 1 : 0,
+              transition: "opacity 0.6s ease-out",
+              zIndex: 10,
+              pointerEvents: showCaption ? "auto" : "none",
+              backdropFilter: "blur(4px)",
+            }}
+          >
+            {CAPTION_TEXT}
+          </div>
+        )}
+        {!imageLoaded && (
+          <div
+            style={{
+              position: "absolute",
+              top: "50%",
+              left: "50%",
+              transform: "translate(-50%, -50%)",
+              color: "white",
+            }}
+          >
+            Loading...
+          </div>
+        )}
+      </div>
+
+      {/* Below the fold content */}
+      <div
+        className="relative min-h-screen bg-gradient-to-b from-transparent to-background"
+        style={{
+          paddingTop: "2rem",
+          zIndex: 1,
+        }}
+      >
+        <div className="relative container mx-auto px-6 py-20">
+          <div className="max-w-4xl mx-auto">
+            <div
+              style={{
+                width: "100%",
+                height: "100vh",
+                backgroundColor: "var(--background)",
+                padding: "2rem",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                color: "var(--foreground)",
+              }}
+            >
+              <div>Below the fold content goes here</div>
+            </div>
+          </div>
         </div>
-      )}
+      </div>
     </div>
   );
 }

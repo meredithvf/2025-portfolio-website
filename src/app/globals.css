@@ -21,6 +21,13 @@
 
 html {
   scroll-behavior: auto;
+  /* Hide scrollbar for webkit browsers (Chrome, Safari, Edge) */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+
+html::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
 }
 
 body {
@@ -28,24 +35,13 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
   overflow-x: hidden;
+  /* Hide scrollbar for webkit browsers */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
 }
 
-/* Custom scrollbar */
-::-webkit-scrollbar {
-  width: 8px;
-}
-
-::-webkit-scrollbar-track {
-  background: #f1f1f1;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #888;
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #555;
+body::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
 }
 
 /* Smooth transitions for all elements except during scroll animation */
@@ -57,44 +53,4 @@ body {
 ::selection {
   background: rgba(0, 0, 0, 0.1);
   color: inherit;
-}
-
-/* Performance optimizations */
-.will-change-transform {
-  will-change: transform;
-}
-
-.will-change-opacity {
-  will-change: opacity;
-}
-
-/* Image quality optimizations - ensure high quality rendering */
-svg {
-  /* Use auto for smooth photo rendering (not crisp-edges which is for pixel art) */
-  image-rendering: auto;
-  /* Force high-quality rendering */
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-svg image {
-  /* Use auto for smooth, high-quality photo rendering during scaling */
-  image-rendering: auto;
-  /* Prevent quality degradation during hardware acceleration */
-  -webkit-backface-visibility: hidden;
-  backface-visibility: hidden;
-}
-
-/* Optimize background images for smooth zooming */
-div[style*="backgroundImage"] {
-  /* Force GPU acceleration for background images */
-  transform: translateZ(0);
-  -webkit-transform: translateZ(0);
-  /* Optimize rendering during transforms */
-  -webkit-backface-visibility: hidden;
-  backface-visibility: hidden;
-  /* Smooth image rendering */
-  image-rendering: auto;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
 }
