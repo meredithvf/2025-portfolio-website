@@ -250,6 +250,15 @@ export default function Home() {
             return prevZoomComplete;
           });
 
+          // Show/hide scrollbar based on zoom state
+          if (newZoomComplete) {
+            document.documentElement.classList.add("show-scrollbar");
+            document.body.classList.add("show-scrollbar");
+          } else {
+            document.documentElement.classList.remove("show-scrollbar");
+            document.body.classList.remove("show-scrollbar");
+          }
+
           ticking = false;
         });
         ticking = true;
@@ -264,6 +273,9 @@ export default function Home() {
       if (rafId !== null) {
         cancelAnimationFrame(rafId);
       }
+      // Clean up: remove scrollbar class on unmount
+      document.documentElement.classList.remove("show-scrollbar");
+      document.body.classList.remove("show-scrollbar");
     };
   }, []);
 

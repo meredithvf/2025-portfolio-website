@@ -81,7 +81,13 @@ export default function Work({ projects }: WorkProps) {
 
           {/* Thumbnail Display */}
           <div className="sticky top-20 h-[60vh] lg:h-[80vh]">
-            <div className="relative w-full h-full overflow-hidden rounded-sm bg-foreground/5">
+            <div
+              className={`relative w-full h-full overflow-hidden rounded-sm ${
+                displayedProject?.thumbnail.includes("byu-logo")
+                  ? "bg-white"
+                  : "bg-foreground/5"
+              }`}
+            >
               {displayedProject && (
                 <div
                   key={displayedProject.id}
@@ -92,7 +98,11 @@ export default function Work({ projects }: WorkProps) {
                   <img
                     src={displayedProject.thumbnail}
                     alt={displayedProject.title}
-                    className="w-full h-full object-cover"
+                    className={`w-full h-full ${
+                      displayedProject.thumbnail.includes("byu-logo")
+                        ? "object-contain p-8"
+                        : "object-cover"
+                    }`}
                     loading="lazy"
                   />
                 </div>

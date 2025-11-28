@@ -44,6 +44,47 @@ body::-webkit-scrollbar {
   display: none; /* Chrome, Safari, Opera */
 }
 
+/* Show scrollbar when zoom is complete (for below-the-fold content) */
+html.show-scrollbar,
+body.show-scrollbar {
+  scrollbar-width: thin; /* Firefox */
+  -ms-overflow-style: auto; /* IE and Edge */
+}
+
+html.show-scrollbar::-webkit-scrollbar,
+body.show-scrollbar::-webkit-scrollbar {
+  display: block; /* Chrome, Safari, Opera */
+  width: 8px;
+}
+
+html.show-scrollbar::-webkit-scrollbar-track,
+body.show-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+html.show-scrollbar::-webkit-scrollbar-thumb,
+body.show-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(26, 26, 24, 0.3);
+  border-radius: 4px;
+}
+
+html.show-scrollbar::-webkit-scrollbar-thumb:hover,
+body.show-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(26, 26, 24, 0.5);
+}
+
+@media (prefers-color-scheme: dark) {
+  html.show-scrollbar::-webkit-scrollbar-thumb,
+  body.show-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(236, 231, 193, 0.3);
+  }
+
+  html.show-scrollbar::-webkit-scrollbar-thumb:hover,
+  body.show-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(236, 231, 193, 0.5);
+  }
+}
+
 /* Smooth transitions for all elements except during scroll animation */
 * {
   transition: none;
