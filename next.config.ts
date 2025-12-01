@@ -15,6 +15,24 @@ const nextConfig: NextConfig = {
         port: "",
         pathname: "/**",
       },
+      {
+        protocol: "https",
+        hostname: "kutv.com",
+        port: "",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "engineering.byu.edu",
+        port: "",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "brightspotcdn.byu.edu",
+        port: "",
+        pathname: "/**",
+      },
     ],
   },
 };
