@@ -51,13 +51,37 @@ export default function ProjectLayout({
 }: ProjectLayoutProps) {
   return (
     <>
-      <div className="absolute top-14 z-10 rotate-270">
-        <Link
-          href="/"
-          className="text-foreground/60 hover:text-foreground transition-colors text-sm"
-        >
-          Back to Work →
-        </Link>
+      <div className="fixed top-1/2 left-8 -translate-y-1/2">
+        <div className="sideways-lr flex flex-row items-center justify-center gap-x-40">
+          <Link
+            href="/#work"
+            className="text-foreground/60 hover:text-foreground transition-colors text-sm"
+          >
+            Work
+          </Link>
+          <Link
+            href="/#contact"
+            className="text-foreground/60 hover:text-foreground transition-colors text-sm"
+          >
+            Contact
+          </Link>
+        </div>
+      </div>
+      <div className="fixed top-1/2 right-8 -translate-y-1/2">
+        <div className="vertical-lr flex flex-row items-center justify-center gap-x-40">
+          <Link
+            href="/#about"
+            className="text-foreground/60 hover:text-foreground transition-colors text-sm"
+          >
+            About
+          </Link>
+          <Link
+            href="/#resume"
+            className="text-foreground/60 hover:text-foreground transition-colors text-sm"
+          >
+            Resume
+          </Link>
+        </div>
       </div>
 
       <ProjectHeader title={title} />

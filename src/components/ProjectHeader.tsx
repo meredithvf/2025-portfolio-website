@@ -54,7 +54,7 @@ export default function ProjectHeader({ title }: ProjectHeaderProps) {
   return (
     <section
       ref={sectionRef}
-      className="relative h-[85vh] flex items-center justify-center mx-20 mb-5 bg-foreground"
+      className="relative h-[85vh] flex items-center justify-center mx-20 my-10 bg-foreground"
     >
       <h1
         className="text-center font-light will-change-transform"

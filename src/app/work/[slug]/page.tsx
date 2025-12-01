@@ -24,7 +24,7 @@ export default async function ProjectDetailPage({
   }
 
   // Special case for Cereal Reads
-  if (slug === "project-two") {
+  if (slug === "cereal-reads") {
     return (
       <ProjectLayout
         title={project.title}
@@ -70,7 +70,7 @@ export default async function ProjectDetailPage({
   }
 
   // Special case for Sava
-  if (slug === "project-three") {
+  if (slug === "sava") {
     return (
       <ProjectLayout
         title={project.title}

@@ -17,6 +17,7 @@ export default function Home() {
   const [zoomComplete, setZoomComplete] = useState(false);
   const [showCaption, setShowCaption] = useState(false);
   const [captionRendered, setCaptionRendered] = useState(false);
+  const [skipIntro, setSkipIntro] = useState(false);
 
   // --- CONFIG ------------------------------------------------------------
   // Adjust to fit your exported PNG resolution
@@ -65,6 +66,43 @@ export default function Home() {
 
     img.onerror = () => {
       console.error("Failed to load image");
+    };
+  }, []);
+
+  // If we land on the page with a section hash (e.g. #work, #about),
+  // skip the zoom intro and jump straight to that section.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const hash = window.location.hash;
+    if (!hash) return;
+
+    const targetId = hash.replace("#", "");
+    const validTargets = new Set(["work", "about", "resume", "contact"]);
+    if (!validTargets.has(targetId)) return;
+
+    // Skip intro hero entirely
+    setSkipIntro(true);
+
+    // Ensure scrollbar is visible
+    document.documentElement.classList.add("show-scrollbar");
+    document.body.classList.add("show-scrollbar");
+
+    // After layout updates without the intro, scroll the target section
+    // into view so we land directly on that section with no smooth scroll.
+    const scrollToTarget = () => {
+      const el = document.getElementById(targetId);
+      if (el) {
+        el.scrollIntoView({
+          behavior: "instant",
+          block: "start",
+        } as ScrollIntoViewOptions);
+      }
+    };
+
+    const timeoutId = window.setTimeout(scrollToTarget, 0);
+
+    return () => {
+      window.clearTimeout(timeoutId);
     };
   }, []);
 
@@ -281,77 +319,81 @@ export default function Home() {
 
   return (
     <div className="relative">
-      {/* Spacer to enable scrolling during zoom phase (3 viewport heights) */}
-      <div style={{ height: "300vh" }} />
+      {!skipIntro && (
+        <>
+          {/* Spacer to enable scrolling during zoom phase (3 viewport heights) */}
+          <div style={{ height: "300vh" }} />
 
-      {/* Photo container - fixed during zoom, relative after zoom (scrolls with page) */}
-      <div
-        ref={containerRef}
-        style={{
-          width: "100vw",
-          height: "100vh",
-          overflow: "hidden",
-          position: zoomComplete ? "relative" : "fixed",
-          top: zoomComplete ? "auto" : 0,
-          left: 0,
-          zIndex: zoomComplete ? 1 : 10,
-          backfaceVisibility: "hidden",
-          transform: "translate3d(0, 0, 0)",
-          opacity: imageLoaded ? 1 : 0,
-          transition: "opacity 0.3s ease-in",
-        }}
-      >
-        <canvas
-          ref={canvasRef}
-          style={{
-            display: "block",
-            width: "100%",
-            height: "100%",
-            imageRendering: "auto",
-            position: "absolute",
-            top: 0,
-            left: 0,
-            zIndex: 1,
-          }}
-        />
-        {captionRendered && (
+          {/* Photo container - fixed during zoom, relative after zoom (scrolls with page) */}
           <div
-            className="caption"
+            ref={containerRef}
             style={{
-              position: "absolute",
-              bottom: "2rem",
-              right: "2rem",
-              padding: "1rem 1.5rem",
-              backgroundColor: "#1a1a18",
-              color: "#ece7c1",
-              borderRadius: "8px",
-              maxWidth: "300px",
-              fontSize: "0.9rem",
-              lineHeight: "1.4",
-              opacity: showCaption ? 1 : 0,
-              transition: "opacity 0.6s ease-out",
-              zIndex: 10,
-              pointerEvents: showCaption ? "auto" : "none",
-              backdropFilter: "blur(4px)",
+              width: "100vw",
+              height: "100vh",
+              overflow: "hidden",
+              position: zoomComplete ? "relative" : "fixed",
+              top: zoomComplete ? "auto" : 0,
+              left: 0,
+              zIndex: zoomComplete ? 1 : 10,
+              backfaceVisibility: "hidden",
+              transform: "translate3d(0, 0, 0)",
+              opacity: imageLoaded ? 1 : 0,
+              transition: "opacity 0.3s ease-in",
             }}
           >
-            {CAPTION_TEXT}
+            <canvas
+              ref={canvasRef}
+              style={{
+                display: "block",
+                width: "100%",
+                height: "100%",
+                imageRendering: "auto",
+                position: "absolute",
+                top: 0,
+                left: 0,
+                zIndex: 1,
+              }}
+            />
+            {captionRendered && (
+              <div
+                className="caption"
+                style={{
+                  position: "absolute",
+                  bottom: "2rem",
+                  right: "2rem",
+                  padding: "1rem 1.5rem",
+                  backgroundColor: "#1a1a18",
+                  color: "#ece7c1",
+                  borderRadius: "8px",
+                  maxWidth: "300px",
+                  fontSize: "0.9rem",
+                  lineHeight: "1.4",
+                  opacity: showCaption ? 1 : 0,
+                  transition: "opacity 0.6s ease-out",
+                  zIndex: 10,
+                  pointerEvents: showCaption ? "auto" : "none",
+                  backdropFilter: "blur(4px)",
+                }}
+              >
+                {CAPTION_TEXT}
+              </div>
+            )}
+            {!imageLoaded && (
+              <div
+                style={{
+                  position: "absolute",
+                  top: "50%",
+                  left: "50%",
+                  transform: "translate(-50%, -50%)",
+                  color: "white",
+                }}
+              >
+                Loading...
+              </div>
+            )}
           </div>
-        )}
-        {!imageLoaded && (
-          <div
-            style={{
-              position: "absolute",
-              top: "50%",
-              left: "50%",
-              transform: "translate(-50%, -50%)",
-              color: "white",
-            }}
-          >
-            Loading...
-          </div>
-        )}
-      </div>
+        </>
+      )}
 
       {/* Below the fold content */}
       <div
@@ -362,7 +404,7 @@ export default function Home() {
         }}
       >
         {/* About Me & Table of Contents Section */}
-        <section className="relative w-full py-20 px-6">
+        <section id="about" className="relative w-full py-20 px-6">
           <div className="max-w-7xl mx-auto">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20">
               {/* About Me - Left Side */}

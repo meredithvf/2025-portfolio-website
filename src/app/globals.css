@@ -119,3 +119,13 @@ body.show-scrollbar::-webkit-scrollbar-thumb:hover {
 .group:hover .toc-item {
   animation: tug-right 0.6s ease-in-out infinite;
 }
+
+.sideways-lr {
+  writing-mode: sideways-lr;
+  text-orientation: mixed;
+}
+
+.vertical-lr {
+  writing-mode: vertical-lr;
+  text-orientation: mixed;
+}
