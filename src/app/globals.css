@@ -43,6 +43,11 @@ body {
   /* Hide scrollbar for webkit browsers */
   scrollbar-width: none; /* Firefox */
   -ms-overflow-style: none; /* IE and Edge */
+  /* Enable text selection */
+  user-select: text;
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
 }
 
 body::-webkit-scrollbar {
@@ -91,14 +96,36 @@ body.show-scrollbar::-webkit-scrollbar-thumb:hover {
 }
 
 /* Smooth transitions for all elements except during scroll animation */
+/* Ensure text selection is enabled globally */
 * {
   transition: none;
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
+  user-select: text;
 }
 
-/* Text selection styling */
+/* Text selection styling - invert colors on selection */
 ::selection {
-  background: rgba(0, 0, 0, 0.1);
-  color: inherit;
+  background: #1a1a18;
+  color: #ece7c1;
+}
+
+::-moz-selection {
+  background: #ece7c1;
+  color: #1a1a18;
+}
+
+@media (prefers-color-scheme: dark) {
+  ::selection {
+    background: #ece7c1;
+    color: #1a1a18;
+  }
+
+  ::-moz-selection {
+    background: #1a1a18;
+    color: #ece7c1;
+  }
 }
 
 /* Table of contents hover animation */

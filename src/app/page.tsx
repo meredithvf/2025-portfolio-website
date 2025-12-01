@@ -339,6 +339,7 @@ export default function Home() {
               transform: "translate3d(0, 0, 0)",
               opacity: imageLoaded ? 1 : 0,
               transition: "opacity 0.3s ease-in",
+              pointerEvents: zoomComplete ? "none" : "auto",
             }}
           >
             <canvas
@@ -352,6 +353,7 @@ export default function Home() {
                 top: 0,
                 left: 0,
                 zIndex: 1,
+                pointerEvents: "none",
               }}
             />
             {captionRendered && (
@@ -415,15 +417,15 @@ export default function Home() {
                 <div className="w-24 h-px bg-foreground/20 mt-8 mb-8"></div>
                 <div className="space-y-4 text-lg text-foreground/70 leading-relaxed">
                   <p>
-                    Welcome to my portfolio. I'm a creative professional
-                    passionate about building meaningful digital experiences
-                    through thoughtful design and innovative development.
+                    My name is Meredith, obviously. You just saw a few photos
+                    from the places I lived in 2025 - at Buddhist monastaries, a
+                    French abbey, and the most beautiful Moroccan town. I care
+                    deeply about spiritual matters and the art of living.
                   </p>
                   <p>
-                    With a focus on user-centered design and clean, efficient
-                    code, I bring ideas to life that are both beautiful and
-                    functional. Explore my work below to see some of the
-                    projects I've had the pleasure of working on.
+                    When I'm not at a monastery, I am a vivacious software
+                    engineer. I find joy in creating beautiful, functional, and
+                    accessible digital experiences.
                   </p>
                 </div>
               </div>
