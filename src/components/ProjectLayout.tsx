@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
+import React from "react";
 import ProjectHeader from "@/components/ProjectHeader";
 import TechnicalStack from "@/components/TechnicalStack";
 
@@ -23,7 +24,7 @@ interface NewsAndAwardsItem {
 interface ProjectLayoutProps {
   title: string;
   category: string;
-  overviewText: string;
+  overviewText: string | React.ReactNode;
   overviewMedia?: {
     type: "video" | "image";
     src: string;
@@ -31,7 +32,7 @@ interface ProjectLayoutProps {
   };
   overviewDescription?: string;
   featuresTitle?: string;
-  features: Feature[];
+  features?: Feature[];
   technologies: string[];
   websiteUrl?: string;
   newsAndAwards?: NewsAndAwardsItem[];
@@ -161,7 +162,7 @@ export default function ProjectLayout({
             </h2>
             <div className="w-24 h-px bg-foreground/20 mb-12"></div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {features.map((feature, index) => (
+              {features?.map((feature, index) => (
                 <div key={index}>
                   <Image
                     src={feature.image}
