@@ -94,7 +94,7 @@ export default async function ProjectDetailPage({
             alt: "Sava Step 2",
             title: "Automated Exit Strategies",
             description:
-              "Used Twilio to send automated exit calls or texts to the user or user's emergency contact.",
+              "Used Twilio and Firebase Messaging to send automated calls and texts to the user and user's emergency contact.",
           },
           {
             image: "/images/sava/sava-screenshot-step3.jpeg",
@@ -111,7 +111,7 @@ export default async function ProjectDetailPage({
               "Built a custom notification system so that users could respond to their check in notification from their lock screen, watch, or notification center.",
           },
         ]}
-        technologies={[]}
+        technologies={["Flutter", "Firebase", "Twilio API", "Heap Analytics"]}
         newsAndAwards={[
           {
             title:
