@@ -59,9 +59,11 @@ export default function ProjectHeader({ title }: ProjectHeaderProps) {
       <h1
         className="text-center font-light will-change-transform"
         style={{
-          fontSize: `clamp(2rem, ${scale * 12}vw, 12rem)`,
+          fontSize: `clamp(2rem, 12vw, 12rem)`,
           opacity: opacity,
           color: "var(--inverted-text)",
+          transform: `scale(${scale})`,
+          transformOrigin: "center center",
         }}
       >
         {title}

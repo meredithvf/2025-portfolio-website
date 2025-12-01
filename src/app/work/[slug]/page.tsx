@@ -234,6 +234,26 @@ export default async function ProjectDetailPage({
     );
   }
 
+  if (slug === "byu-hci") {
+    return (
+      <ProjectLayout
+        title={project.title}
+        category={project.category}
+        overviewText="I worked in the BYU Human Computer Interaction Lab from 2019-2021. I was initially drawn to this lab because I was interested in the relationship between technology and the outdoors. Among other projects, I got to spend lots of time researching this topic and in the CHI 2021 proceedings I published &ldquo;Outside Where? A Survey of Climates and Built Environments in Studies of HCI outdoors.&rdquo;"
+        technologies={["Python", "R"]}
+        websiteUrl="https://dl.acm.org/doi/fullHtml/10.1145/3491102.3507656"
+        websiteButtonText="View paper"
+        newsAndAwards={[
+          {
+            title: "2nd place in section at the BYU Research Competition",
+            organization: "BYU",
+            date: "2019",
+          },
+        ]}
+      />
+    );
+  }
+
   // Default template for other projects
   return (
     <>

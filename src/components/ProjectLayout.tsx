@@ -35,6 +35,7 @@ interface ProjectLayoutProps {
   features?: Feature[];
   technologies: string[];
   websiteUrl?: string;
+  websiteButtonText?: string;
   newsAndAwards?: NewsAndAwardsItem[];
 }
 
@@ -48,6 +49,7 @@ export default function ProjectLayout({
   features,
   technologies,
   websiteUrl,
+  websiteButtonText = "Visit Website",
   newsAndAwards,
 }: ProjectLayoutProps) {
   return (
@@ -107,7 +109,7 @@ export default function ProjectLayout({
                       rel="noopener noreferrer"
                       className="inline-block px-6 py-3 border border-foreground/30 hover:border-foreground hover:bg-foreground/5 transition-colors rounded-sm"
                     >
-                      Visit Website →
+                      {websiteButtonText} →
                     </a>
                   </div>
                 )}
@@ -156,33 +158,37 @@ export default function ProjectLayout({
           )}
 
           {/* Key Features */}
-          <section className="mb-20">
-            <h2 className="text-3xl md:text-4xl font-light mb-6">
-              {featuresTitle}
-            </h2>
-            <div className="w-24 h-px bg-foreground/20 mb-12"></div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {features?.map((feature, index) => (
-                <div key={index}>
-                  <Image
-                    src={feature.image}
-                    alt={feature.alt}
-                    width={300}
-                    height={200}
-                    className="w-full h-auto rounded-sm mb-4"
-                  />
-                  {feature.title && (
-                    <h3 className="text-lg font-light mb-2">{feature.title}</h3>
-                  )}
-                  {feature.description && (
-                    <p className="text-foreground/70 text-sm leading-relaxed">
-                      {feature.description}
-                    </p>
-                  )}
-                </div>
-              ))}
-            </div>
-          </section>
+          {features && features.length > 0 && (
+            <section className="mb-20">
+              <h2 className="text-3xl md:text-4xl font-light mb-6">
+                {featuresTitle}
+              </h2>
+              <div className="w-24 h-px bg-foreground/20 mb-12"></div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {features?.map((feature, index) => (
+                  <div key={index}>
+                    <Image
+                      src={feature.image}
+                      alt={feature.alt}
+                      width={300}
+                      height={200}
+                      className="w-full h-auto rounded-sm mb-4"
+                    />
+                    {feature.title && (
+                      <h3 className="text-lg font-light mb-2">
+                        {feature.title}
+                      </h3>
+                    )}
+                    {feature.description && (
+                      <p className="text-foreground/70 text-sm leading-relaxed">
+                        {feature.description}
+                      </p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
 
           {/* Technical Stack */}
           {technologies.length > 0 && (
@@ -207,13 +213,16 @@ export default function ProjectLayout({
                         rel: "noopener noreferrer",
                       }
                     : {};
+                  const isClickable = !!item.url;
 
                   return (
                     <Component
                       key={index}
                       {...props}
-                      className={`group block border border-foreground/20 ${
-                        item.url
+                      className={`${
+                        isClickable ? "group" : ""
+                      } block border border-foreground/20 ${
+                        isClickable
                           ? "hover:border-foreground/40 hover:bg-foreground/5 cursor-pointer"
                           : ""
                       } transition-all rounded-sm overflow-hidden`}
@@ -224,14 +233,16 @@ export default function ProjectLayout({
                             src={item.image}
                             alt={item.imageAlt || item.title}
                             fill
-                            className="object-cover group-hover:scale-105 transition-transform duration-300"
+                            className={`object-cover transition-transform duration-300 ${
+                              isClickable ? "group-hover:scale-105" : ""
+                            }`}
                           />
                         </div>
                       )}
                       <div className="p-6">
                         <h4
                           className={`text-lg font-light mb-3 ${
-                            item.url
+                            isClickable
                               ? "group-hover:text-foreground transition-colors"
                               : ""
                           }`}
