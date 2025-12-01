@@ -3,6 +3,7 @@ import Image from "next/image";
 import React from "react";
 import ProjectHeader from "@/components/ProjectHeader";
 import TechnicalStack from "@/components/TechnicalStack";
+import Button from "@/components/Button";
 
 interface Feature {
   image: string;
@@ -95,22 +96,15 @@ export default function ProjectLayout({
             <p className="text-2xl mb-6">{category}</p>
             <div className="w-24 h-px bg-foreground/20 mb-8"></div>
             {(overviewText || websiteUrl) && (
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 items-start">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 items-center">
                 {overviewText && (
                   <p className="text-xl text-foreground/80 leading-relaxed max-w-3xl lg:col-span-2">
                     {overviewText}
                   </p>
                 )}
                 {websiteUrl && (
-                  <div className="flex justify-center align-center lg:col-span-1">
-                    <a
-                      href={websiteUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-block px-6 py-3 border border-foreground/30 hover:border-foreground hover:bg-foreground/5 transition-colors rounded-sm"
-                    >
-                      {websiteButtonText} →
-                    </a>
+                  <div className="flex justify-center items-center lg:col-span-1">
+                    <Button href={websiteUrl}>{websiteButtonText} →</Button>
                   </div>
                 )}
               </div>

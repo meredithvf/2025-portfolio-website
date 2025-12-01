@@ -1,11 +1,12 @@
 "use client";
 
+import Button from "@/components/Button";
+
 export default function Resume() {
   const handleDownload = () => {
-    // Create a link element and trigger download
     const link = document.createElement("a");
     link.href = "/resume.pdf";
-    link.download = "resume.pdf";
+    link.download = "meredith-von-feldt-resume.pdf";
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -21,22 +22,12 @@ export default function Resume() {
 
         <div className="max-w-2xl">
           <p className="text-lg text-foreground/70 mb-8 leading-relaxed">
-            Download a copy of my resume to learn more about my experience,
-            skills, and background.
+            Want something more formal?
           </p>
 
-          <button
-            onClick={handleDownload}
-            className="group inline-flex items-center gap-3 px-8 py-4 border border-foreground/20 hover:border-foreground/60 bg-transparent hover:bg-foreground/5 transition-all duration-300 rounded-sm"
-          >
-            <span className="text-lg font-light">Download Resume</span>
-            <span className="text-foreground/40 group-hover:text-foreground/80 transition-colors duration-300">
-              ↓
-            </span>
-          </button>
+          <Button onClick={handleDownload}>Download Resume ↓</Button>
         </div>
       </div>
     </section>
   );
 }
-
