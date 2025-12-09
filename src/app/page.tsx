@@ -7,11 +7,9 @@ import Contact from "@/components/Contact";
 import { projects } from "@/data/projects";
 
 export default function Home() {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const viewerRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const imageRef = useRef<HTMLImageElement | null>(null);
-  const lowResImageRef = useRef<HTMLImageElement | null>(null);
-  const highResImageRef = useRef<HTMLImageElement | null>(null);
+  const viewerInstanceRef = useRef<any>(null);
   const [imageLoaded, setImageLoaded] = useState(false);
   const [scrollProgress, setScrollProgress] = useState(0);
   const [zoomComplete, setZoomComplete] = useState(false);
@@ -20,57 +18,140 @@ export default function Home() {
   const [skipIntro, setSkipIntro] = useState(false);
 
   // --- CONFIG ------------------------------------------------------------
-  // Adjust to fit your exported PNG resolution
-  const IMAGE_WIDTH = 8000;
-  const IMAGE_HEIGHT = 3000;
-
-  // Initial zoom (1.0 = fit screen)
   const MIN_ZOOM = 1;
   const MAX_ZOOM = 40;
-
-  // Caption text
   const CAPTION_TEXT = "Caption text here";
-
-  // Target zoom hotspots (percent of image)
   const TARGETS = {
-    E: { x: 56, y: 55 }, // adjust after testing
-    D: { x: 56, y: 70 }, // adjust after testing
+    E: { x: 56, y: 5 },
+    D: { x: 56, y: 5 },
   };
-
-  // Progressive image loading thresholds
-  const HIGH_RES_ZOOM_THRESHOLD = 10; // Use high-res image when zoom > 10x
 
   // -----------------------------------------------------------------------
 
-  // Load image
+  // Load OpenSeadragon CSS
   useEffect(() => {
-    const img = new Image();
-    img.crossOrigin = "anonymous";
+    const link = document.createElement("link");
+    link.rel = "stylesheet";
+    link.href =
+      "https://cdn.jsdelivr.net/npm/openseadragon@4.1.0/build/openseadragon/openseadragon.min.css";
+    document.head.appendChild(link);
 
-    // Start with lower resolution for faster initial load
-    img.src = "/images/large_1x_mask.png";
-
-    img.onload = () => {
-      imageRef.current = img;
-      lowResImageRef.current = img;
-      setImageLoaded(true);
-
-      // Preload high-res image in background
-      const highResImg = new Image();
-      highResImg.crossOrigin = "anonymous";
-      highResImg.src = "/images/32000w_mask.png";
-      highResImg.onload = () => {
-        highResImageRef.current = highResImg;
-      };
-    };
-
-    img.onerror = () => {
-      console.error("Failed to load image");
+    return () => {
+      const existingLink = document.querySelector(
+        'link[href*="openseadragon.min.css"]'
+      );
+      if (existingLink) {
+        existingLink.remove();
+      }
     };
   }, []);
 
-  // If we land on the page with a section hash (e.g. #work, #about),
-  // skip the zoom intro and jump straight to that section.
+  // Initialize OpenSeadragon with preloaded image
+  useEffect(() => {
+    if (!viewerRef.current || skipIntro || typeof window === "undefined") {
+      return;
+    }
+
+    // Initialize OpenSeadragon with DZI format
+    const initViewer = async () => {
+      try {
+        const OpenSeadragon = (await import("openseadragon")).default;
+
+        if (!viewerRef.current) return;
+
+        // Use DZI format - expects /images/32000w_mask.dzi or /images/32000w_mask_files/ structure
+        // The .dzi file is an XML descriptor, and _files/ contains the tiles
+        const dziUrl = "/images/32000w_mask.dzi";
+
+        const viewer = OpenSeadragon({
+          element: viewerRef.current,
+          prefixUrl:
+            "https://cdn.jsdelivr.net/npm/openseadragon@4.1.0/build/openseadragon/images/",
+          tileSources: dziUrl,
+          showNavigationControl: false,
+          showSequenceControl: false,
+          showFullPageControl: false,
+          showZoomControl: false,
+          showHomeControl: false,
+          showRotationControl: false,
+          gestureSettingsMouse: {
+            clickToZoom: false,
+            dblClickToZoom: false,
+            pinchToZoom: false,
+            flickEnabled: false,
+            scrollToZoom: false,
+          },
+          gestureSettingsTouch: {
+            clickToZoom: false,
+            dblClickToZoom: false,
+            pinchToZoom: false,
+            flickEnabled: false,
+          },
+          maxZoomLevel: MAX_ZOOM,
+          minZoomLevel: MIN_ZOOM,
+          defaultZoomLevel: MIN_ZOOM,
+          visibilityRatio: 1.0,
+          constrainDuringPan: true,
+          mouseNavEnabled: false,
+          zoomPerScroll: 0,
+          zoomPerClick: 0,
+          animationTime: 0,
+        });
+
+        viewerInstanceRef.current = viewer;
+
+        viewer.addHandler("open", () => {
+          // First, ensure image is visible by going home (fits image to viewport)
+          viewer.viewport.goHome();
+
+          // Wait a frame for home to complete, then set initial zoom
+          requestAnimationFrame(() => {
+            const target = TARGETS.E;
+            const targetPoint = new OpenSeadragon.Point(
+              target.x / 100,
+              target.y / 100
+            );
+
+            // Set initial zoom level centered on target
+            viewer.viewport.zoomTo(MIN_ZOOM, targetPoint, true);
+
+            setImageLoaded(true);
+          });
+        });
+
+        viewer.addHandler("open-failed", (event) => {
+          console.error("OpenSeadragon failed to open image:", event);
+          setImageLoaded(true); // Show viewer anyway
+        });
+
+        // Handle tile load failures gracefully
+        // Note: Some tile load failures are normal (e.g., levels beyond image resolution)
+        viewer.addHandler("tile-load-failed", () => {
+          // Silently ignore - OpenSeadragon will handle fallbacks automatically
+        });
+
+        // Fallback: show viewer after a delay even if events don't fire
+        setTimeout(() => {
+          if (viewer && !imageLoaded) {
+            setImageLoaded(true);
+          }
+        }, 2000);
+      } catch (error) {
+        console.error("Failed to preload image:", error);
+      }
+    };
+
+    initViewer();
+
+    return () => {
+      if (viewerInstanceRef.current) {
+        viewerInstanceRef.current.destroy();
+        viewerInstanceRef.current = null;
+      }
+    };
+  }, [skipIntro]);
+
+  // If we land on the page with a section hash, skip the zoom intro
   useEffect(() => {
     if (typeof window === "undefined") return;
     const hash = window.location.hash;
@@ -80,15 +161,10 @@ export default function Home() {
     const validTargets = new Set(["work", "about", "resume", "contact"]);
     if (!validTargets.has(targetId)) return;
 
-    // Skip intro hero entirely
     setSkipIntro(true);
-
-    // Ensure scrollbar is visible
     document.documentElement.classList.add("show-scrollbar");
     document.body.classList.add("show-scrollbar");
 
-    // After layout updates without the intro, scroll the target section
-    // into view so we land directly on that section with no smooth scroll.
     const scrollToTarget = () => {
       const el = document.getElementById(targetId);
       if (el) {
@@ -100,7 +176,6 @@ export default function Home() {
     };
 
     const timeoutId = window.setTimeout(scrollToTarget, 0);
-
     return () => {
       window.clearTimeout(timeoutId);
     };
@@ -111,133 +186,24 @@ export default function Home() {
     return MIN_ZOOM + scrollProgress * (MAX_ZOOM - MIN_ZOOM);
   }, [scrollProgress]);
 
-  // Setup canvas and zoom handling
+  // Update OpenSeadragon zoom and pan based on scroll
   useEffect(() => {
-    const canvas = canvasRef.current;
-    const container = containerRef.current;
-    if (!canvas || !container || !imageLoaded || !imageRef.current) return;
+    const viewer = viewerInstanceRef.current;
+    if (!viewer || !imageLoaded || typeof window === "undefined") {
+      return;
+    }
 
-    const ctx = canvas.getContext("2d", {
-      alpha: false,
-      desynchronized: true, // Better performance
-      willReadFrequently: false,
+    import("openseadragon").then((OpenSeadragon) => {
+      const target = TARGETS.E;
+      const targetPoint = new OpenSeadragon.default.Point(
+        target.x / 100,
+        target.y / 100
+      );
+
+      // Update zoom and pan based on scroll progress
+      viewer.viewport.zoomTo(zoomScale, targetPoint, true);
     });
-
-    if (!ctx) return;
-
-    let target = TARGETS.E;
-    let ticking = false;
-    let animationFrameId: number | null = null;
-
-    // Set canvas size to match viewport (always 100vw x 100vh)
-    const resizeCanvas = () => {
-      const width = window.innerWidth;
-      const height = window.innerHeight;
-      canvas.width = width * window.devicePixelRatio;
-      canvas.height = height * window.devicePixelRatio;
-      canvas.style.width = `${width}px`;
-      canvas.style.height = `${height}px`;
-      ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
-    };
-
-    resizeCanvas();
-    window.addEventListener("resize", resizeCanvas);
-
-    // Draw image to canvas
-    const draw = () => {
-      if (!imageRef.current || !ctx) return;
-
-      const img = imageRef.current;
-      const canvasWidth = canvas.width / window.devicePixelRatio;
-      const canvasHeight = canvas.height / window.devicePixelRatio;
-
-      // Clear canvas with container's background color
-      const computedStyle = window.getComputedStyle(container);
-      const backgroundColor = computedStyle.backgroundColor || "#ece7c1";
-      ctx.fillStyle = backgroundColor;
-      ctx.fillRect(0, 0, canvasWidth, canvasHeight);
-
-      // Calculate image dimensions to maintain aspect ratio
-      const imageAspect = img.width / img.height;
-      const canvasAspect = canvasWidth / canvasHeight;
-
-      let drawWidth: number;
-      let drawHeight: number;
-      let offsetX = 0;
-      let offsetY = 0;
-
-      if (imageAspect > canvasAspect) {
-        // Image is wider - fit to width
-        drawWidth = canvasWidth;
-        drawHeight = canvasWidth / imageAspect;
-        offsetY = (canvasHeight - drawHeight) / 2;
-      } else {
-        // Image is taller - fit to height
-        drawHeight = canvasHeight;
-        drawWidth = canvasHeight * imageAspect;
-        offsetX = (canvasWidth - drawWidth) / 2;
-      }
-
-      // Calculate zoom transform
-      const scale = zoomScale;
-      const centerX = (target.x / 100) * drawWidth + offsetX;
-      const centerY = (target.y / 100) * drawHeight + offsetY;
-
-      // Save context
-      ctx.save();
-
-      // Apply zoom transform
-      ctx.translate(centerX, centerY);
-      ctx.scale(scale, scale);
-      ctx.translate(-centerX, -centerY);
-
-      // Draw image with high quality
-      ctx.imageSmoothingEnabled = true;
-      ctx.imageSmoothingQuality = "high";
-      ctx.drawImage(img, offsetX, offsetY, drawWidth, drawHeight);
-
-      // Restore context
-      ctx.restore();
-    };
-
-    // Draw whenever zoom changes
-    if (!ticking) {
-      ticking = true;
-      animationFrameId = requestAnimationFrame(() => {
-        draw();
-        ticking = false;
-      });
-    }
-
-    // Switch to high-res image if zooming in past threshold
-    if (
-      zoomScale > HIGH_RES_ZOOM_THRESHOLD &&
-      imageRef.current === lowResImageRef.current
-    ) {
-      if (highResImageRef.current) {
-        imageRef.current = highResImageRef.current;
-        draw();
-      }
-    }
-
-    // Switch back to low-res if zooming out past threshold
-    if (
-      zoomScale <= HIGH_RES_ZOOM_THRESHOLD &&
-      imageRef.current === highResImageRef.current
-    ) {
-      if (lowResImageRef.current) {
-        imageRef.current = lowResImageRef.current;
-        draw();
-      }
-    }
-
-    return () => {
-      window.removeEventListener("resize", resizeCanvas);
-      if (animationFrameId !== null) {
-        cancelAnimationFrame(animationFrameId);
-      }
-    };
-  }, [imageLoaded, zoomScale]);
+  }, [zoomScale, imageLoaded]);
 
   // Handle scroll events
   useEffect(() => {
@@ -249,35 +215,29 @@ export default function Home() {
         rafId = requestAnimationFrame(() => {
           const scrollTop = window.scrollY;
           const windowHeight = window.innerHeight;
-
-          // Zoom phase: 0 to 3 viewport heights (longer zoom duration)
           const zoomPhaseHeight = windowHeight * 3;
 
           let newProgress: number;
           let newZoomComplete: boolean;
 
           if (scrollTop < zoomPhaseHeight) {
-            // During zoom phase
             newProgress = Math.min(scrollTop / zoomPhaseHeight, 1);
             newZoomComplete = false;
           } else {
-            // After zoom completes
             newProgress = 1;
             newZoomComplete = true;
           }
 
           setScrollProgress(newProgress);
 
-          // Show caption when zoom is almost complete (85% progress)
           const CAPTION_THRESHOLD = 0.85;
           if (newProgress >= CAPTION_THRESHOLD) {
             setShowCaption(true);
-            setCaptionRendered(true); // Keep in DOM once shown
+            setCaptionRendered(true);
           } else {
             setShowCaption(false);
           }
 
-          // Update zoom complete state
           setZoomComplete((prevZoomComplete) => {
             if (newZoomComplete && !prevZoomComplete) {
               return true;
@@ -288,7 +248,6 @@ export default function Home() {
             return prevZoomComplete;
           });
 
-          // Show/hide scrollbar based on zoom state
           if (newZoomComplete) {
             document.documentElement.classList.add("show-scrollbar");
             document.body.classList.add("show-scrollbar");
@@ -304,14 +263,13 @@ export default function Home() {
     };
 
     window.addEventListener("scroll", handleScroll, { passive: true });
-    handleScroll(); // Initial call
+    handleScroll();
 
     return () => {
       window.removeEventListener("scroll", handleScroll);
       if (rafId !== null) {
         cancelAnimationFrame(rafId);
       }
-      // Clean up: remove scrollbar class on unmount
       document.documentElement.classList.remove("show-scrollbar");
       document.body.classList.remove("show-scrollbar");
     };
@@ -321,10 +279,7 @@ export default function Home() {
     <div className="relative">
       {!skipIntro && (
         <>
-          {/* Spacer to enable scrolling during zoom phase (3 viewport heights) */}
           <div style={{ height: "300vh" }} />
-
-          {/* Photo container - fixed during zoom, relative after zoom (scrolls with page) */}
           <div
             ref={containerRef}
             style={{
@@ -342,18 +297,19 @@ export default function Home() {
               pointerEvents: zoomComplete ? "none" : "auto",
             }}
           >
-            <canvas
-              ref={canvasRef}
+            <div
+              ref={viewerRef}
               style={{
-                display: "block",
                 width: "100%",
                 height: "100%",
-                imageRendering: "auto",
                 position: "absolute",
                 top: 0,
                 left: 0,
                 zIndex: 1,
-                pointerEvents: "none",
+                // Improve rendering quality
+                imageRendering: "auto",
+                WebkitFontSmoothing: "antialiased",
+                MozOsxFontSmoothing: "grayscale",
               }}
             />
             {captionRendered && (
@@ -397,7 +353,6 @@ export default function Home() {
         </>
       )}
 
-      {/* Below the fold content */}
       <div
         className="relative min-h-screen bg-gradient-to-b from-transparent to-background"
         style={{
@@ -405,11 +360,9 @@ export default function Home() {
           zIndex: 1,
         }}
       >
-        {/* About Me & Table of Contents Section */}
         <section id="about" className="relative w-full py-20 px-6">
           <div className="max-w-7xl mx-auto">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20">
-              {/* About Me - Left Side */}
               <div>
                 <h2 className="text-4xl md:text-5xl font-light mb-4">
                   About Me
@@ -430,7 +383,6 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* Table of Contents - Right Side */}
               <div className="flex justify-center">
                 <nav className="space-y-1">
                   <a

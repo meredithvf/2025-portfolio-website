@@ -156,3 +156,33 @@ body.show-scrollbar::-webkit-scrollbar-thumb:hover {
   writing-mode: vertical-lr;
   text-orientation: mixed;
 }
+
+/* OpenSeadragon styles */
+.openseadragon-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  /* Improve rendering quality during zoom */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  /* Force hardware acceleration for smoother zoom */
+  transform: translateZ(0);
+  will-change: transform;
+}
+
+.openseadragon-canvas {
+  outline: none;
+  /* Smooth image rendering */
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: auto;
+}
+
+/* Improve canvas rendering quality during zoom */
+.openseadragon-canvas canvas {
+  /* Smooth scaling during zoom animations */
+  image-rendering: auto;
+  /* Force hardware acceleration */
+  transform: translateZ(0);
+  will-change: transform;
+}
