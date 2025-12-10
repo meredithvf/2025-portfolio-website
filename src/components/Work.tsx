@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 
 export interface Project {
@@ -22,17 +22,69 @@ export default function Work({ projects }: WorkProps) {
   const [displayedProject, setDisplayedProject] = useState<Project | null>(
     projects[0] || null
   );
-  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [nextProject, setNextProject] = useState<Project | null>(null);
+  const [showNext, setShowNext] = useState(false);
+  const transitionTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const rafRef = useRef<number | null>(null);
 
   useEffect(() => {
-    if (hoveredProject && hoveredProject.id !== displayedProject?.id) {
-      setIsTransitioning(true);
-      const timer = setTimeout(() => {
-        setDisplayedProject(hoveredProject);
-        setIsTransitioning(false);
-      }, 150);
-      return () => clearTimeout(timer);
+    // Clear any existing timers
+    if (transitionTimerRef.current) {
+      clearTimeout(transitionTimerRef.current);
+      transitionTimerRef.current = null;
     }
+    if (rafRef.current) {
+      cancelAnimationFrame(rafRef.current);
+      rafRef.current = null;
+    }
+
+    if (hoveredProject && hoveredProject.id !== displayedProject?.id) {
+      // Preload image and wait for it to be ready
+      const img = new Image();
+      img.src = hoveredProject.thumbnail;
+
+      const startTransition = () => {
+        // Always set the next project to the hovered one
+        setNextProject(hoveredProject);
+        setShowNext(false);
+
+        // Small delay to ensure DOM is ready, then start transition
+        rafRef.current = requestAnimationFrame(() => {
+          rafRef.current = requestAnimationFrame(() => {
+            setShowNext(true);
+          });
+        });
+
+        transitionTimerRef.current = setTimeout(() => {
+          setDisplayedProject(hoveredProject);
+          setNextProject(null);
+          setShowNext(false);
+          transitionTimerRef.current = null;
+        }, 900);
+      };
+
+      // If image is already loaded, start immediately
+      if (img.complete) {
+        startTransition();
+      } else {
+        // Wait for image to load before starting transition
+        img.onload = startTransition;
+        img.onerror = startTransition; // Start even if image fails
+      }
+    } else if (hoveredProject && hoveredProject.id === displayedProject?.id) {
+      // If hovering over the currently displayed project, reset transition state
+      setNextProject(null);
+      setShowNext(false);
+    }
+
+    return () => {
+      if (transitionTimerRef.current) {
+        clearTimeout(transitionTimerRef.current);
+      }
+      if (rafRef.current) {
+        cancelAnimationFrame(rafRef.current);
+      }
+    };
   }, [hoveredProject, displayedProject]);
 
   if (!projects || projects.length === 0) {
@@ -40,9 +92,9 @@ export default function Work({ projects }: WorkProps) {
   }
 
   return (
-    <section id="work" className="relative w-full min-h-screen py-20 px-6">
+    <section id="work" className="relative w-full min-h-screen py-10 px-6">
       <div className="max-w-7xl mx-auto">
-        <div className="mb-16">
+        <div className="mb-5">
           <h2 className="text-4xl md:text-5xl font-light mb-4">Work</h2>
           <div className="w-24 h-px bg-foreground/20 mt-8"></div>
         </div>
@@ -57,7 +109,7 @@ export default function Work({ projects }: WorkProps) {
                 className="block group"
                 onMouseEnter={() => setHoveredProject(project)}
               >
-                <div className="flex items-center justify-between py-4 border-b border-foreground/10 group-hover:border-foreground/30 transition-colors duration-300">
+                <div className="flex items-center justify-between py-4 border-b border-foreground/10 group-hover:border-foreground/30 transition-colors duration-300 bounce-item">
                   <div className="flex items-center gap-4">
                     <span className="text-sm text-foreground/40 font-mono tabular-nums">
                       {String(index + 1).padStart(2, "0")}
@@ -80,10 +132,11 @@ export default function Work({ projects }: WorkProps) {
           </div>
 
           {/* Thumbnail Display */}
-          <div className="sticky top-20 h-[60vh] lg:h-[80vh]">
+          <div className="h-[35vh] lg:h-[calc(100vh-12rem)] max-w-full">
             <div
               className={`relative w-full h-full overflow-hidden rounded-sm ${
-                displayedProject?.thumbnail.includes("byu-logo")
+                displayedProject?.thumbnail.includes("byu-logo") ||
+                nextProject?.thumbnail.includes("byu-logo")
                   ? "bg-white"
                   : "bg-foreground/5"
               }`}
@@ -91,19 +144,42 @@ export default function Work({ projects }: WorkProps) {
               {displayedProject && (
                 <div
                   key={displayedProject.id}
-                  className={`absolute inset-0 transition-opacity duration-500 ease-in-out ${
-                    isTransitioning ? "opacity-0" : "opacity-100"
-                  }`}
+                  className="absolute inset-0"
+                  style={{
+                    opacity: showNext ? 0 : 1,
+                    transition: "opacity 1500ms cubic-bezier(0.4, 0, 0.2, 1)",
+                  }}
                 >
                   <img
                     src={displayedProject.thumbnail}
                     alt={displayedProject.title}
                     className={`w-full h-full ${
                       displayedProject.thumbnail.includes("byu-logo")
-                        ? "object-contain p-8"
+                        ? "object-contain p-20"
                         : "object-cover"
                     }`}
                     loading="lazy"
+                  />
+                </div>
+              )}
+              {nextProject && (
+                <div
+                  key={`next-${nextProject.id}`}
+                  className="absolute inset-0"
+                  style={{
+                    opacity: showNext ? 1 : 0,
+                    transition: "opacity 900ms cubic-bezier(0.4, 0, 0.2, 1)",
+                  }}
+                >
+                  <img
+                    src={nextProject.thumbnail}
+                    alt={nextProject.title}
+                    className={`w-full h-full ${
+                      nextProject.thumbnail.includes("byu-logo")
+                        ? "object-contain p-20"
+                        : "object-cover"
+                    }`}
+                    loading="eager"
                   />
                 </div>
               )}

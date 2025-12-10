@@ -139,11 +139,11 @@ body.show-scrollbar::-webkit-scrollbar-thumb:hover {
   }
 }
 
-.toc-item {
+.bounce-item {
   animation: none;
 }
 
-.group:hover .toc-item {
+.group:hover .bounce-item {
   animation: tug-right 0.6s ease-in-out infinite;
 }
 

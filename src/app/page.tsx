@@ -389,7 +389,7 @@ export default function Home() {
                     href="#work"
                     className="block py-4 transition-colors duration-300 group"
                   >
-                    <div className="flex items-center justify-start gap-4 toc-item">
+                    <div className="flex items-center justify-start gap-4 bounce-item">
                       <span className="text-4xl md:text-5xl font-light group-hover:text-foreground transition-colors duration-300">
                         Work
                       </span>
@@ -402,7 +402,7 @@ export default function Home() {
                     href="#resume"
                     className="block py-4 transition-colors duration-300 group"
                   >
-                    <div className="flex items-center justify-start gap-4 toc-item">
+                    <div className="flex items-center justify-start gap-4 bounce-item">
                       <span className="text-4xl md:text-5xl font-light group-hover:text-foreground transition-colors duration-300">
                         Resume
                       </span>
@@ -415,7 +415,7 @@ export default function Home() {
                     href="#contact"
                     className="block py-4 transition-colors duration-300 group"
                   >
-                    <div className="flex items-center justify-start gap-4 toc-item">
+                    <div className="flex items-center justify-start gap-4 bounce-item">
                       <span className="text-4xl md:text-5xl font-light group-hover:text-foreground transition-colors duration-300">
                         Contact
                       </span>
