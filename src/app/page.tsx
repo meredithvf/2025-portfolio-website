@@ -16,14 +16,79 @@ export default function Home() {
   const [showCaption, setShowCaption] = useState(false);
   const [captionRendered, setCaptionRendered] = useState(false);
   const [skipIntro, setSkipIntro] = useState(false);
+  const [clickedCoords, setClickedCoords] = useState<{
+    x: number;
+    y: number;
+  } | null>(null);
 
   // --- CONFIG ------------------------------------------------------------
   const MIN_ZOOM = 1;
-  const MAX_ZOOM = 40;
-  const CAPTION_TEXT = "Caption text here";
+  const MAX_ZOOM = 35;
   const TARGETS = {
-    E: { x: 56, y: 5 },
-    D: { x: 56, y: 5 },
+    M: {
+      x: 16.765,
+      y: 6.93,
+      caption:
+        "City fountain in Taroudant, Morocco. I spent a month living with a family there, teaching college students, and fasting Ramadan.",
+    },
+    E1: {
+      x: 24.12,
+      y: 9,
+      caption:
+        "Cows ready for milking at Abbaye des Dombes, France. I lived at the Abbey for a short time, working on the dairy farm and participating in daily rituals.",
+    },
+    R: {
+      x: 33.45,
+      y: 4.7,
+      caption:
+        "Hundreds of young adults celebrate Easter at Hautecombe Abbey, France. I lived at the Abbey for several months, participating in daily life with the nuns and monks.",
+    },
+    E2: {
+      x: 48,
+      y: 9,
+      caption:
+        "A meditation room at Zen Mountain Monastery, Mt. Tremper, New York. I lived at the monastery for a month, meditating and working alongside the nuns and monks.",
+    },
+    D: {
+      x: 55.8,
+      y: 7,
+      caption:
+        'the "Zendo", or meditation hall, at Bodhi Mandala Zen Center, Jemez Springs, New Mexico. I lived at the monastery meditating, carrying out daily work, and assisting with retreats.',
+    },
+    I: {
+      x: 68.3,
+      y: 9.9,
+      caption:
+        "Statue of Mary on the terrace at Hautecombe Abbey, France. I lived at the Abbey for several months, participating in daily life with the nuns and monks.",
+    },
+    T: {
+      x: 77.14,
+      y: 8.4,
+      caption:
+        "Sheep graze behind the cathedral and cemetery at Abbaye des Dombes, France. I lived at the Abbey for a short time, working on the dairy farm and participating in daily rituals.",
+    },
+    H: {
+      x: 89,
+      y: 8.8,
+      caption:
+        "Women walking through the market in Taroudant, Morocco. I spent a month living with a family there, teaching college students, and fasting Ramadan.",
+    },
+  };
+
+  // Randomly select a target letter - changes when user zooms all the way out
+  const [randomTarget, setRandomTarget] = useState(() => {
+    const targetKeys = Object.keys(TARGETS) as (keyof typeof TARGETS)[];
+    const randomKey = targetKeys[Math.floor(Math.random() * targetKeys.length)];
+    return TARGETS[randomKey];
+  });
+  const wasZoomedInRef = useRef(false);
+  const homeCenterRef = useRef<{ x: number; y: number } | null>(null);
+
+  // Pick a new random target when user zooms all the way back out
+  const pickNewRandomTarget = () => {
+    const targetKeys = Object.keys(TARGETS) as (keyof typeof TARGETS)[];
+    const randomKey = targetKeys[Math.floor(Math.random() * targetKeys.length)];
+    setRandomTarget(TARGETS[randomKey]);
   };
 
   // -----------------------------------------------------------------------
@@ -59,9 +124,7 @@ export default function Home() {
 
         if (!viewerRef.current) return;
 
-        // Use DZI format - expects /images/32000w_mask.dzi or /images/32000w_mask_files/ structure
-        // The .dzi file is an XML descriptor, and _files/ contains the tiles
-        const dziUrl = "/images/32000w_mask.dzi";
+        const dziUrl = "/images/meredith_collage.dzi";
 
         const viewer = OpenSeadragon({
           element: viewerRef.current,
@@ -104,19 +167,38 @@ export default function Home() {
           // First, ensure image is visible by going home (fits image to viewport)
           viewer.viewport.goHome();
 
-          // Wait a frame for home to complete, then set initial zoom
+          // Wait a frame for home to complete, then capture home center
           requestAnimationFrame(() => {
-            const target = TARGETS.E;
-            const targetPoint = new OpenSeadragon.Point(
-              target.x / 100,
-              target.y / 100
-            );
+            // Store the home center for interpolation during zoom
+            const homeCenter = viewer.viewport.getCenter();
+            homeCenterRef.current = { x: homeCenter.x, y: homeCenter.y };
 
-            // Set initial zoom level centered on target
-            viewer.viewport.zoomTo(MIN_ZOOM, targetPoint, true);
+            // Start at home position with MIN_ZOOM
+            viewer.viewport.zoomTo(MIN_ZOOM, homeCenter, true);
 
             setImageLoaded(true);
           });
+        });
+
+        // DEBUG: Click handler to get coordinates - DELETE THIS WHEN DONE
+        new OpenSeadragon.MouseTracker({
+          element: viewer.canvas,
+          clickHandler: (event: any) => {
+            const viewportPoint = viewer.viewport.pointFromPixel(
+              event.position
+            );
+
+            // Output viewport coordinates directly (multiply by 100 for readability)
+            // These can be used directly as: { x: value, y: value } in TARGETS
+            const xCoord = viewportPoint.x * 100;
+            const yCoord = viewportPoint.y * 100;
+
+            console.log("=== CLICKED COORDINATES (viewport) ===");
+            console.log(`{ x: ${xCoord.toFixed(2)}, y: ${yCoord.toFixed(2)} }`);
+            console.log("=======================================");
+
+            setClickedCoords({ x: xCoord, y: yCoord });
+          },
         });
 
         viewer.addHandler("open-failed", (event) => {
@@ -149,7 +231,7 @@ export default function Home() {
         viewerInstanceRef.current = null;
       }
     };
-  }, [skipIntro]);
+  }, [skipIntro, randomTarget]);
 
   // If we land on the page with a section hash, skip the zoom intro
   useEffect(() => {
@@ -181,9 +263,11 @@ export default function Home() {
     };
   }, []);
 
-  // Calculate zoom based on scroll progress
+  // Calculate zoom based on scroll progress (exponential for perceptually linear feel)
   const zoomScale = useMemo(() => {
-    return MIN_ZOOM + scrollProgress * (MAX_ZOOM - MIN_ZOOM);
+    // Exponential interpolation: makes zoom feel linear and match the linear pan
+    // At progress 0: MIN_ZOOM, at progress 0.5: ~6x, at progress 1: MAX_ZOOM
+    return MIN_ZOOM * Math.pow(MAX_ZOOM / MIN_ZOOM, scrollProgress);
   }, [scrollProgress]);
 
   // Update OpenSeadragon zoom and pan based on scroll
@@ -194,16 +278,32 @@ export default function Home() {
     }
 
     import("openseadragon").then((OpenSeadragon) => {
-      const target = TARGETS.E;
-      const targetPoint = new OpenSeadragon.default.Point(
-        target.x / 100,
-        target.y / 100
+      const homeCenter = homeCenterRef.current || { x: 0.5, y: 0.05 };
+      const targetCenter = {
+        x: randomTarget.x / 100,
+        y: randomTarget.y / 100,
+      };
+
+      // Ease-out for pan: fast at start, slow at end
+      // This makes the camera pan toward target early while zoom builds gradually
+      const panProgress = 1 - Math.pow(1 - scrollProgress, 2.5);
+
+      // Interpolate between home center and target center using eased progress
+      const interpolatedX =
+        homeCenter.x + panProgress * (targetCenter.x - homeCenter.x);
+      const interpolatedY =
+        homeCenter.y + panProgress * (targetCenter.y - homeCenter.y);
+
+      const interpolatedCenter = new OpenSeadragon.default.Point(
+        interpolatedX,
+        interpolatedY
       );
 
-      // Update zoom and pan based on scroll progress
-      viewer.viewport.zoomTo(zoomScale, targetPoint, true);
+      // Pan to interpolated center and zoom simultaneously
+      viewer.viewport.panTo(interpolatedCenter, true);
+      viewer.viewport.zoomTo(zoomScale, interpolatedCenter, true);
     });
-  }, [zoomScale, imageLoaded]);
+  }, [zoomScale, scrollProgress, imageLoaded, randomTarget]);
 
   // Handle scroll events
   useEffect(() => {
@@ -229,6 +329,14 @@ export default function Home() {
           }
 
           setScrollProgress(newProgress);
+
+          // Track if user has zoomed in, and pick new target when they zoom back out
+          if (newProgress > 0.2) {
+            wasZoomedInRef.current = true;
+          } else if (newProgress < 0.05 && wasZoomedInRef.current) {
+            wasZoomedInRef.current = false;
+            pickNewRandomTarget();
+          }
 
           const CAPTION_THRESHOLD = 0.85;
           if (newProgress >= CAPTION_THRESHOLD) {
@@ -333,7 +441,7 @@ export default function Home() {
                   backdropFilter: "blur(4px)",
                 }}
               >
-                {CAPTION_TEXT}
+                {randomTarget.caption}
               </div>
             )}
             {!imageLoaded && (
@@ -349,6 +457,35 @@ export default function Home() {
                 Loading...
               </div>
             )}
+            {/* DEBUG: Coordinate display - DELETE THIS WHEN DONE */}
+            <div
+              style={{
+                position: "absolute",
+                top: "1rem",
+                left: "1rem",
+                padding: "1rem",
+                backgroundColor: "rgba(0, 0, 0, 0.85)",
+                color: "#00ff00",
+                borderRadius: "8px",
+                fontFamily: "monospace",
+                fontSize: "1rem",
+                zIndex: 100,
+                userSelect: "all",
+              }}
+            >
+              <div style={{ marginBottom: "0.5rem", color: "#fff" }}>
+                🎯 Click anywhere to get coordinates:
+              </div>
+              {clickedCoords ? (
+                <div>
+                  {`{ x: ${clickedCoords.x.toFixed(
+                    2
+                  )}, y: ${clickedCoords.y.toFixed(2)} }`}
+                </div>
+              ) : (
+                <div style={{ color: "#888" }}>Waiting for click...</div>
+              )}
+            </div>
           </div>
         </>
       )}
