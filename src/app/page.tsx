@@ -16,10 +16,6 @@ export default function Home() {
   const [showCaption, setShowCaption] = useState(false);
   const [captionRendered, setCaptionRendered] = useState(false);
   const [skipIntro, setSkipIntro] = useState(false);
-  const [clickedCoords, setClickedCoords] = useState<{
-    x: number;
-    y: number;
-  } | null>(null);
 
   // --- CONFIG ------------------------------------------------------------
   const MIN_ZOOM = 1;
@@ -178,27 +174,6 @@ export default function Home() {
 
             setImageLoaded(true);
           });
-        });
-
-        // DEBUG: Click handler to get coordinates - DELETE THIS WHEN DONE
-        new OpenSeadragon.MouseTracker({
-          element: viewer.canvas,
-          clickHandler: (event: any) => {
-            const viewportPoint = viewer.viewport.pointFromPixel(
-              event.position
-            );
-
-            // Output viewport coordinates directly (multiply by 100 for readability)
-            // These can be used directly as: { x: value, y: value } in TARGETS
-            const xCoord = viewportPoint.x * 100;
-            const yCoord = viewportPoint.y * 100;
-
-            console.log("=== CLICKED COORDINATES (viewport) ===");
-            console.log(`{ x: ${xCoord.toFixed(2)}, y: ${yCoord.toFixed(2)} }`);
-            console.log("=======================================");
-
-            setClickedCoords({ x: xCoord, y: yCoord });
-          },
         });
 
         viewer.addHandler("open-failed", (event) => {
@@ -457,35 +432,6 @@ export default function Home() {
                 Loading...
               </div>
             )}
-            {/* DEBUG: Coordinate display - DELETE THIS WHEN DONE */}
-            <div
-              style={{
-                position: "absolute",
-                top: "1rem",
-                left: "1rem",
-                padding: "1rem",
-                backgroundColor: "rgba(0, 0, 0, 0.85)",
-                color: "#00ff00",
-                borderRadius: "8px",
-                fontFamily: "monospace",
-                fontSize: "1rem",
-                zIndex: 100,
-                userSelect: "all",
-              }}
-            >
-              <div style={{ marginBottom: "0.5rem", color: "#fff" }}>
-                🎯 Click anywhere to get coordinates:
-              </div>
-              {clickedCoords ? (
-                <div>
-                  {`{ x: ${clickedCoords.x.toFixed(
-                    2
-                  )}, y: ${clickedCoords.y.toFixed(2)} }`}
-                </div>
-              ) : (
-                <div style={{ color: "#888" }}>Waiting for click...</div>
-              )}
-            </div>
           </div>
         </>
       )}
