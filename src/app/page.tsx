@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState, useMemo } from "react";
-import Work from "@/components/Work";
-import Resume from "@/components/Resume";
-import Contact from "@/components/Contact";
+import Intro from "@/components/Intro";
+import WorkShowcase from "@/components/WorkShowcase";
+import Footer from "@/components/Footer";
 import { projects } from "@/data/projects";
 
 export default function Home() {
@@ -215,7 +215,7 @@ export default function Home() {
     if (!hash) return;
 
     const targetId = hash.replace("#", "");
-    const validTargets = new Set(["work", "about", "resume", "contact"]);
+    const validTargets = new Set(["work"]);
     if (!validTargets.has(targetId)) return;
 
     setSkipIntro(true);
@@ -436,87 +436,12 @@ export default function Home() {
         </>
       )}
 
-      <div
-        className="relative min-h-screen bg-gradient-to-b from-transparent to-background"
-        style={{
-          paddingTop: "2rem",
-          zIndex: 1,
-        }}
-      >
-        <section id="about" className="relative w-full py-20 px-6">
-          <div className="max-w-7xl mx-auto">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20">
-              <div>
-                <h2 className="text-4xl md:text-5xl font-light mb-4">
-                  About Me
-                </h2>
-                <div className="w-24 h-px bg-foreground/20 mt-8 mb-8"></div>
-                <div className="space-y-4 text-lg text-foreground/70 leading-relaxed">
-                  <p>
-                    My name is Meredith, obviously. You just saw a few photos
-                    from the places I lived in 2025 - at Buddhist monastaries, a
-                    French abbey, and the most beautiful Moroccan town. I care
-                    deeply about spiritual matters and the art of living.
-                  </p>
-                  <p>
-                    When I'm not at a monastery, I am a vivacious software
-                    engineer. I find joy in creating beautiful, functional, and
-                    accessible digital experiences.
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex justify-center">
-                <nav className="space-y-1">
-                  <a
-                    href="#work"
-                    className="block py-4 transition-colors duration-300 group"
-                  >
-                    <div className="flex items-center justify-start gap-4 bounce-item">
-                      <span className="text-4xl md:text-5xl font-light group-hover:text-foreground transition-colors duration-300">
-                        Work
-                      </span>
-                      <span className="text-4xl md:text-5xl text-foreground/30 group-hover:text-foreground/60 transition-colors duration-300">
-                        →
-                      </span>
-                    </div>
-                  </a>
-                  <a
-                    href="#resume"
-                    className="block py-4 transition-colors duration-300 group"
-                  >
-                    <div className="flex items-center justify-start gap-4 bounce-item">
-                      <span className="text-4xl md:text-5xl font-light group-hover:text-foreground transition-colors duration-300">
-                        Resume
-                      </span>
-                      <span className="text-4xl md:text-5xl text-foreground/30 group-hover:text-foreground/60 transition-colors duration-300">
-                        →
-                      </span>
-                    </div>
-                  </a>
-                  <a
-                    href="#contact"
-                    className="block py-4 transition-colors duration-300 group"
-                  >
-                    <div className="flex items-center justify-start gap-4 bounce-item">
-                      <span className="text-4xl md:text-5xl font-light group-hover:text-foreground transition-colors duration-300">
-                        Contact
-                      </span>
-                      <span className="text-4xl md:text-5xl text-foreground/30 group-hover:text-foreground/60 transition-colors duration-300">
-                        →
-                      </span>
-                    </div>
-                  </a>
-                </nav>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <Work projects={projects} />
-        <Resume />
-        <Contact />
-      </div>
+      {/* Main Content */}
+      <main className="relative bg-background" style={{ zIndex: 1 }}>
+        <Intro />
+        <WorkShowcase projects={projects} />
+        <Footer />
+      </main>
     </div>
   );
 }
