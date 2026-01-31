@@ -41,57 +41,63 @@ export default function Footer() {
   return (
     <footer
       ref={footerRef}
-      className="relative w-full py-20 px-6 md:px-12 border-t border-foreground/10"
+      className="relative w-full min-h-screen py-12 px-6 md:px-12 border-t border-foreground/10 bg-background flex flex-col"
+      style={{ zIndex: 10 }}
       role="contentinfo"
     >
-      <div className="max-w-6xl mx-auto">
+      {/* Main CTA - centered in the middle */}
+      <div className="flex-1 flex items-center justify-center">
         <div
           className={`
-            transition-all duration-1000 ease-out
+            text-center transition-all duration-1000 ease-out
             ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}
           `}
         >
-          {/* Main CTA */}
-          <div className="text-center mb-16">
-            <p className="text-sm uppercase tracking-[0.2em] text-foreground/50 mb-4">
-              Let's connect
-            </p>
-            <a
-              href="mailto:meredithvf@gmail.com"
-              className="display-heading text-4xl md:text-5xl lg:text-6xl link-underline hover:text-foreground/70 transition-colors duration-300"
-              aria-label="Send email to meredithvf@gmail.com"
-            >
-              meredithvf@gmail.com
-            </a>
-          </div>
+          <p className="text-sm uppercase tracking-[0.2em] text-foreground/50 mb-4">
+            Let's connect
+          </p>
+          <a
+            href="mailto:meredithvf@gmail.com"
+            className="display-heading text-4xl md:text-5xl lg:text-6xl link-underline hover:text-foreground/70 transition-colors duration-300"
+            aria-label="Send email to meredithvf@gmail.com"
+          >
+            meredithvf@gmail.com
+          </a>
+        </div>
+      </div>
 
-          {/* Bottom Row */}
-          <div className="flex flex-col md:flex-row items-center justify-between gap-6 pt-8 border-t border-foreground/10">
-            <p className="text-sm text-foreground/40">
-              © {currentYear} Meredith Von Feldt
-            </p>
+      {/* Bottom Row - pinned to bottom */}
+      <div
+        className={`
+          max-w-6xl mx-auto w-full transition-all duration-1000 ease-out delay-200
+          ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}
+        `}
+      >
+        <div className="flex flex-col md:flex-row items-center justify-between gap-6 pt-8 border-t border-foreground/10">
+          <p className="text-sm text-foreground/40">
+            © {currentYear} Meredith SunshineVon Feldt
+          </p>
+          
+          <div className="flex items-center gap-8">
+            <button
+              onClick={handleResumeDownload}
+              className="text-sm text-foreground/60 hover:text-foreground transition-colors duration-300 link-underline"
+              aria-label="Download resume as PDF"
+            >
+              Download Resume
+            </button>
             
-            <div className="flex items-center gap-8">
-              <button
-                onClick={handleResumeDownload}
-                className="text-sm text-foreground/60 hover:text-foreground transition-colors duration-300 link-underline"
-                aria-label="Download resume as PDF"
-              >
-                Download Resume
-              </button>
-              
-              <a
-                href="#"
-                onClick={(e) => {
-                  e.preventDefault();
-                  window.scrollTo({ top: 0, behavior: "smooth" });
-                }}
-                className="text-sm text-foreground/60 hover:text-foreground transition-colors duration-300"
-                aria-label="Scroll back to top"
-              >
-                Back to top ↑
-              </a>
-            </div>
+            <a
+              href="#"
+              onClick={(e) => {
+                e.preventDefault();
+                window.scrollTo({ top: 0, behavior: "smooth" });
+              }}
+              className="text-sm text-foreground/60 hover:text-foreground transition-colors duration-300"
+              aria-label="Scroll back to top"
+            >
+              Back to top ↑
+            </a>
           </div>
         </div>
       </div>

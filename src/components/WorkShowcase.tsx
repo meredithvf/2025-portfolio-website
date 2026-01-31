@@ -55,27 +55,39 @@ function ProjectSlide({
   const [scrollProgress, setScrollProgress] = useState(0);
 
   useEffect(() => {
+    let ticking = false;
+    
     const handleScroll = () => {
-      if (!slideRef.current) return;
-
-      const rect = slideRef.current.getBoundingClientRect();
-      const windowHeight = window.innerHeight;
-      const slideHeight = rect.height;
-
-      const totalScrollDistance = slideHeight + windowHeight;
-      const scrolled = windowHeight - rect.top;
-      const progress = scrolled / totalScrollDistance;
-      const clamped = Math.max(0, Math.min(1, progress));
-
-      setScrollProgress(clamped);
-
-      if (videoRef.current) {
-        if (clamped > 0.15 && clamped < 0.7) {
-          videoRef.current.play().catch(() => {});
-        } else {
-          videoRef.current.pause();
+      if (ticking) return;
+      
+      ticking = true;
+      requestAnimationFrame(() => {
+        if (!slideRef.current) {
+          ticking = false;
+          return;
         }
-      }
+
+        const rect = slideRef.current.getBoundingClientRect();
+        const windowHeight = window.innerHeight;
+        const slideHeight = rect.height;
+
+        const totalScrollDistance = slideHeight + windowHeight;
+        const scrolled = windowHeight - rect.top;
+        const progress = scrolled / totalScrollDistance;
+        const clamped = Math.max(0, Math.min(1, progress));
+
+        setScrollProgress(clamped);
+
+        if (videoRef.current) {
+          if (clamped > 0.15 && clamped < 0.7) {
+            videoRef.current.play().catch(() => {});
+          } else {
+            videoRef.current.pause();
+          }
+        }
+        
+        ticking = false;
+      });
     };
 
     window.addEventListener("scroll", handleScroll, { passive: true });
@@ -148,37 +160,17 @@ function ProjectSlide({
       style={{
         minHeight: "150vh",
         backgroundColor: bgColor,
-        marginTop: index > 0 ? "-20vh" : 0, // Overlap with previous slide
-        zIndex: index + 1, // Each slide stacks above the previous
+        marginTop: index > 0 ? "-20vh" : 0,
+        zIndex: index + 1,
       }}
     >
-      {/* The Sun - with radial gradient glow */}
+      {/* The Sun - simplified for performance */}
       <div
         className="absolute inset-0 pointer-events-none"
         aria-hidden="true"
         style={{ zIndex: 5 }}
       >
-        {/* Outer glow */}
-        <div
-          className="sun-pulse"
-          style={{
-            position: "absolute",
-            left: "50%",
-            top: `${circleTop}%`,
-            width: `${circleWidth * 1.2}vw`,
-            height: `${circleHeight * 1.2}vw`,
-            transform: "translateX(-50%)",
-            borderRadius: "50%",
-            background: `radial-gradient(ellipse at 50% 50%,
-              ${sunColor}40 0%,
-              ${sunColor}20 40%,
-              ${sunColor}08 60%,
-              transparent 75%
-            )`,
-          }}
-        />
-
-        {/* Main sun body with gradient */}
+        {/* Main sun body */}
         <div
           style={{
             position: "absolute",
@@ -186,7 +178,7 @@ function ProjectSlide({
             top: `${circleTop}%`,
             width: `${circleWidth}vw`,
             height: `${circleHeight}vw`,
-            transform: "translateX(-50%)",
+            transform: "translateX(-50%) translateZ(0)",
             borderRadius: "50%",
             background: `radial-gradient(ellipse at 50% 35%,
               ${sunCore} 0%,
@@ -197,176 +189,166 @@ function ProjectSlide({
           }}
         />
 
-        {/* Light rays */}
-        <div
-          style={{
-            position: "absolute",
-            left: "50%",
-            top: `${circleTop + circleHeight * 0.25}%`,
-            width: `${circleWidth * 2}vw`,
-            height: `${circleHeight}vw`,
-            transform: "translateX(-50%)",
-            opacity: raysOpacity * 0.15,
-            background: `
-              conic-gradient(
-                from 180deg at 50% 100%,
-                transparent 0deg,
-                ${sunCore} 5deg,
-                transparent 10deg,
-                transparent 20deg,
-                ${sunCore} 25deg,
-                transparent 30deg,
-                transparent 40deg,
-                ${sunCore} 45deg,
-                transparent 50deg,
-                transparent 60deg,
-                ${sunCore} 65deg,
-                transparent 70deg,
-                transparent 80deg,
-                ${sunCore} 85deg,
-                transparent 90deg,
-                transparent 100deg,
-                ${sunCore} 105deg,
-                transparent 110deg,
-                transparent 120deg,
-                ${sunCore} 125deg,
-                transparent 130deg,
-                transparent 140deg,
-                ${sunCore} 145deg,
-                transparent 150deg,
-                transparent 160deg,
-                ${sunCore} 165deg,
-                transparent 170deg,
-                transparent 180deg
-              )
-            `,
-            filter: "blur(8px)",
-          }}
-        />
-
-        {/* Lens flare / bright spot at top of sun */}
-        <div
-          style={{
-            position: "absolute",
-            left: "50%",
-            top: `${circleTop + circleHeight * 0.15}%`,
-            width: `${circleWidth * 0.15}vw`,
-            height: `${circleHeight * 0.08}vw`,
-            transform: "translateX(-50%)",
-            borderRadius: "50%",
-            background: `radial-gradient(ellipse at 50% 50%,
-              rgba(255,255,255,0.6) 0%,
-              rgba(255,255,255,0.2) 40%,
-              transparent 70%
-            )`,
-            opacity: raysOpacity * 0.8,
-            filter: "blur(4px)",
-          }}
-        />
-
-        {/* "Sunshine" easter egg - very subtle, visible when sun is prominent */}
-        <div
-          style={{
-            position: "absolute",
-            left: "50%",
-            top: `${circleTop + circleHeight * 0.4}%`,
-            transform: "translateX(-50%)",
-            fontFamily: "var(--font-playfair), Georgia, serif",
-            fontSize: `${circleWidth * 0.03}vw`,
-            letterSpacing: "0.3em",
-            color: `rgba(255,255,255,${raysOpacity * 0.12})`,
-            textTransform: "lowercase",
-            fontStyle: "italic",
-            pointerEvents: "none",
-            userSelect: "none",
-          }}
-        >
-          meredith sunshine
-        </div>
+        {/* "Sunshine" easter egg - positioned relative to the sun */}
+        {(() => {
+          // Calculate ellipse parameters
+          const rx = circleWidth / 2; // horizontal radius in vw
+          const ry = circleHeight / 2; // vertical radius in vw
+          const svgHeight = circleHeight * 0.5; // top half only
+          
+          // Arc just inside the top edge (offset by 2% of radius)
+          const innerRx = rx * 0.98;
+          const innerRy = ry * 0.98;
+          
+          // Start and end angles for the arc (in radians, from top)
+          // Left side: around -123 to -109 degrees from horizontal
+          const startAngle = -2.15; // about -123 degrees
+          const endAngle = -1.9; // about -109 degrees
+          
+          // Calculate start and end points on the inner ellipse
+          const cx = rx; // center x
+          const cy = svgHeight; // center y (bottom of SVG)
+          
+          const x1 = cx + innerRx * Math.cos(startAngle);
+          const y1 = cy + innerRy * Math.sin(startAngle);
+          const x2 = cx + innerRx * Math.cos(endAngle);
+          const y2 = cy + innerRy * Math.sin(endAngle);
+          
+          const arcPath = `M ${x1},${y1} A ${innerRx},${innerRy} 0 0 1 ${x2},${y2}`;
+          
+          return (
+            <svg
+              style={{
+                position: "absolute",
+                left: "50%",
+                top: `${circleTop}%`,
+                width: `${circleWidth}vw`,
+                height: `${svgHeight}vw`,
+                transform: "translateX(-50%)",
+                overflow: "visible",
+                pointerEvents: "none",
+              }}
+              viewBox={`0 0 ${circleWidth} ${svgHeight}`}
+              preserveAspectRatio="none"
+            >
+              <defs>
+                <path
+                  id={`sunCurve-${index}`}
+                  d={arcPath}
+                  fill="none"
+                />
+              </defs>
+              <text
+                style={{
+                  fontFamily: "var(--font-playfair), Georgia, serif",
+                  fontSize: "2px",
+                  letterSpacing: "0.1em",
+                  fill: "rgba(255,255,255,0.35)",
+                  fontStyle: "italic",
+                }}
+              >
+                <textPath
+                  href={`#sunCurve-${index}`}
+                  startOffset="50%"
+                  textAnchor="middle"
+                >
+                  meredith sunshine
+                </textPath>
+              </text>
+            </svg>
+          );
+        })()}
       </div>
 
       {/* Content */}
-      <div className="relative z-10 min-h-screen flex items-center py-20">
-        <Link
-          href={`/work/${project.slug}`}
-          className="group block w-full"
-          aria-label={`View ${project.title} project`}
-          style={{
-            opacity: contentOpacity,
-            transform: `translateY(${contentY}px)`,
-          }}
-        >
-          <div className="max-w-2xl mx-auto px-6 md:px-12 text-center">
-            {/* Number */}
-            <span
-              className="display-heading text-7xl md:text-8xl leading-none block mb-4"
-              style={{ color: "rgba(255,255,255,0.15)" }}
-            >
-              {String(index + 1).padStart(2, "0")}
-            </span>
-
-            {/* Media */}
-            <div className="mb-6">
-              <div className="relative overflow-hidden rounded-lg aspect-[16/10] shadow-xl bg-black/10 max-w-sm mx-auto">
-                {isVideo ? (
-                  <video
-                    ref={videoRef}
-                    src={media.src}
-                    className="w-full h-full object-cover"
-                    muted
-                    loop
-                    playsInline
-                    preload="metadata"
-                  />
-                ) : (
-                  <img
-                    src={media.src}
-                    alt={project.title}
-                    className={`
-                      w-full h-full object-cover
-                      transition-transform duration-500
-                      group-hover:scale-105
-                      ${
-                        media.src.includes("byu-logo")
-                          ? "object-contain bg-white p-8"
-                          : ""
-                      }
-                    `}
-                    loading="lazy"
-                  />
-                )}
-              </div>
+      <div
+        className="relative z-10 min-h-screen flex items-center justify-center py-20"
+        style={{
+          opacity: contentOpacity,
+          transform: `translateY(${contentY}px)`,
+        }}
+      >
+        <div className="group inline-flex flex-col items-center text-center">
+          {/* Media */}
+          <Link
+            href={`/work/${project.slug}`}
+            className="mb-6"
+            aria-label={`View ${project.title} project`}
+          >
+            <div className="relative overflow-hidden rounded-lg aspect-[16/10] shadow-xl bg-black/10 w-80 md:w-96">
+              {isVideo ? (
+                <video
+                  ref={videoRef}
+                  src={media.src}
+                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  muted
+                  loop
+                  playsInline
+                  preload="metadata"
+                />
+              ) : (
+                <img
+                  src={media.src}
+                  alt={project.title}
+                  className={`
+                    w-full h-full object-cover
+                    transition-transform duration-500
+                    group-hover:scale-105
+                    ${
+                      media.src.includes("byu-logo")
+                        ? "object-contain bg-white p-8"
+                        : ""
+                    }
+                  `}
+                  loading="lazy"
+                />
+              )}
             </div>
+          </Link>
 
-            {/* Text Content */}
-            <div>
-              <p className="text-sm uppercase tracking-[0.2em] text-white/70 mb-2">
+          {/* Text Content */}
+          <div className="flex flex-col items-center">
+            <Link
+              href={`/work/${project.slug}`}
+              className="mb-2"
+            >
+              <p className="text-sm uppercase tracking-[0.2em] text-slate-600">
                 {project.category}
               </p>
+            </Link>
 
-              <h3 className="display-heading text-3xl md:text-4xl text-white mb-3 group-hover:opacity-80 transition-opacity">
+            <Link
+              href={`/work/${project.slug}`}
+              className="mb-3"
+            >
+              <h3 className="display-heading text-3xl md:text-4xl text-slate-800 transition-transform duration-300 group-hover:scale-110 origin-center">
                 {project.title}
               </h3>
+            </Link>
 
-              {project.description && (
-                <p className="text-white/60 text-sm leading-relaxed mb-6 max-w-md mx-auto">
+            {project.description && (
+              <Link
+                href={`/work/${project.slug}`}
+                className="mb-6"
+              >
+                <p className="text-slate-600 text-sm leading-relaxed max-w-sm">
                   {project.description}
                 </p>
-              )}
+              </Link>
+            )}
 
-              <span className="inline-flex items-center gap-3 text-sm text-white/60 group-hover:text-white transition-colors">
-                <span>View Project</span>
-                <span className="group-hover:translate-x-2 transition-transform">
-                  →
-                </span>
+            <Link
+              href={`/work/${project.slug}`}
+              className="inline-flex items-center gap-3 text-xl text-slate-800 group-hover:scale-110 transition-colors"
+            >
+              <span>View Project</span>
+              <span className="group-hover:translate-x-2 transition-transform">
+                →
               </span>
+            </Link>
 
-              <div className="mt-6 text-xs text-white/40 font-mono">
-                {index + 1} / {totalProjects}
-              </div>
-            </div>
           </div>
-        </Link>
+        </div>
       </div>
     </div>
   );
@@ -395,7 +377,7 @@ export default function WorkShowcase({ projects }: WorkShowcaseProps) {
   return (
     <section
       id="work"
-      className="relative w-full"
+      className="relative w-full overflow-hidden"
       aria-labelledby="work-heading"
     >
       {/* Header */}

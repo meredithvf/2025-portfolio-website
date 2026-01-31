@@ -12,7 +12,7 @@ export const projects: Project[] = [
       type: "image",
       src: "/images/lucid/design-system-tabs.png",
     },
-    sunColor: "#E8D5A3", // Muted golden wheat
+    sunColor: "#f2e3a5", 
   },
   {
     id: "2",
@@ -25,7 +25,7 @@ export const projects: Project[] = [
       type: "video",
       src: "https://dtbn723bxqwag.cloudfront.net/hero_video_720.mp4",
     },
-    sunColor: "#D4B896", // Muted warm sand
+    sunColor: "#f5de98", // Slightly warmer yellow
   },
   {
     id: "3",
@@ -38,11 +38,11 @@ export const projects: Project[] = [
       type: "video",
       src: "https://github.com/meredithvf/website-video-hosting/releases/download/V1.0.0/SavaPromo.mp4",
     },
-    sunColor: "#C9B8C9", // Muted dusty lavender
+    sunColor: "#f7d88b", // Soft golden yellow
   },
   {
     id: "4",
-    title: "BYU HCI Lab",
+    title: "Human Computer Interaction Lab",
     category: "Researcher & Engineer",
     thumbnail: "/images/byu-logo.png",
     slug: "byu-hci",
@@ -51,6 +51,6 @@ export const projects: Project[] = [
       type: "image",
       src: "/images/byu-logo.png",
     },
-    sunColor: "#B8C9D4", // Muted soft blue dusk
+    sunColor: "#f9d27e", // Rich golden yellow
   },
 ];
