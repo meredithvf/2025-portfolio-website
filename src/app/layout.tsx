@@ -20,8 +20,8 @@ const playfair = Playfair_Display({
 });
 
 export const metadata: Metadata = {
-  title: "Meredith SunshineVon Feldt | Software Engineer & Designer",
-  description: "Portfolio of Meredith Von Feldt - Software Engineer creating beautiful, functional, and accessible digital experiences.",
+  title: "Meredith Sunshine Von Feldt",
+  description: "Portfolio of Meredith Sunshine Von Feldt - Software Engineer creating beautiful, functional, and accessible digital experiences.",
 };
 
 export default function RootLayout({
