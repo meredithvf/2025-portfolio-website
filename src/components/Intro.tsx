@@ -63,19 +63,24 @@ export default function Intro() {
               ref={addToRefs}
               className="animate-on-scroll delay-100 display-heading text-4xl md:text-5xl lg:text-6xl mb-8"
             >
-              Hi, I'm{" "}
-              <span className="italic">Meredith</span>
+              <span className="italic">Meredith Sunshine</span>
             </h1>
             
             <div
               ref={addToRefs}
               className="animate-on-scroll delay-200 space-y-4 text-lg text-foreground/70 leading-relaxed max-w-xl"
             >
-              <p>
-                I create beautiful, functional, and accessible digital experiences. 
-                When I'm not coding, you might find me at a monastery or exploring 
-                the art of living.
-              </p>
+              <p className="mb-4">
+                My name is Meredith, obviously. You just saw a few photos
+                 from the places I lived in 2025 - at Buddhist monastaries, a
+                French abbey, and the most beautiful Moroccan town. I care
+                 deeply about spiritual matters and the art of living.
+                </p>
+                <p>
+                  When I'm not at a monastery, I am a vivacious software
+                  engineer. I find joy in creating beautiful, functional, and
+                  accessible digital experiences.
+                </p>
             </div>
           </div>
 
@@ -93,7 +98,7 @@ export default function Intro() {
                   href="#work"
                   className="group flex items-center justify-between py-3 border-b border-foreground/10 hover:border-foreground/40 transition-colors duration-300"
                 >
-                  <span className="display-heading text-2xl md:text-3xl group-hover:translate-x-2 transition-transform duration-300">
+                  <span className="display-heading text-2xl md:text-3xl group-hover:translate-x-2 group-hover:scale-110 transition-transform duration-300">
                     Work
                   </span>
                   <span className="text-2xl text-foreground/30 group-hover:text-foreground/70 group-hover:-translate-x-1 transition-all duration-300">
@@ -111,10 +116,10 @@ export default function Intro() {
                   className="group flex items-center justify-between py-3 border-b border-foreground/10 hover:border-foreground/40 transition-colors duration-300 w-full text-left"
                   aria-label="Download resume as PDF"
                 >
-                  <span className="display-heading text-2xl md:text-3xl group-hover:translate-x-2 transition-transform duration-300">
+                  <span className="display-heading text-2xl md:text-3xl group-hover:translate-x-2 group-hover:scale-110 transition-transform duration-300">
                     Resume
                   </span>
-                  <span className="text-lg text-foreground/30 group-hover:text-foreground/70 transition-colors duration-300">
+                  <span className="text-lg text-foreground/30 group-hover:text-foreground/70 group-hover:-translate-x-1 transition-colors duration-300">
                     ↓ PDF
                   </span>
                 </button>
@@ -129,10 +134,10 @@ export default function Intro() {
                   className="group flex items-center justify-between py-3 border-b border-foreground/10 hover:border-foreground/40 transition-colors duration-300"
                   aria-label="Send email to meredithvf@gmail.com"
                 >
-                  <span className="display-heading text-2xl md:text-3xl group-hover:translate-x-2 transition-transform duration-300">
-                    Say Hello
+                  <span className="display-heading text-2xl md:text-3xl group-hover:translate-x-2 group-hover:scale-110 transition-transform duration-300">
+                    Connect
                   </span>
-                  <span className="text-sm text-foreground/30 group-hover:text-foreground/70 transition-colors duration-300 font-mono">
+                  <span className="text-sm text-foreground/30 group-hover:text-foreground/70 group-hover:-translate-x-1 transition-colors duration-300 font-mono">
                     meredithvf@gmail.com
                   </span>
                 </a>
