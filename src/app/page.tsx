@@ -378,6 +378,7 @@ export default function Home() {
               opacity: imageLoaded ? 1 : 0,
               transition: "opacity 0.3s ease-in",
               pointerEvents: zoomComplete ? "none" : "auto",
+              backgroundColor: "#1a1a18",
             }}
           >
             <div
