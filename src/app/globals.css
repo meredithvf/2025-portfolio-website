@@ -170,6 +170,13 @@ body.show-scrollbar::-webkit-scrollbar-thumb:hover {
   animation: fade-up 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
 }
 
+/* Skip animations when navigating via hash - show content immediately */
+.skip-intro-animations .animate-on-scroll {
+  opacity: 1 !important;
+  transform: none !important;
+  animation: none !important;
+}
+
 .animate-fade-in.is-visible {
   animation: fade-in 1s ease-out forwards;
 }

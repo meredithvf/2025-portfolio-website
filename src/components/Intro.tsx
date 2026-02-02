@@ -45,6 +45,7 @@ export default function Intro() {
 
   return (
     <section
+      id="intro"
       ref={sectionRef}
       className="relative w-full min-h-[70vh] flex items-center py-20 px-6 md:px-12"
     >

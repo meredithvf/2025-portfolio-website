@@ -16,6 +16,7 @@ export default function Home() {
   const [showCaption, setShowCaption] = useState(false);
   const [captionRendered, setCaptionRendered] = useState(false);
   const [skipIntro, setSkipIntro] = useState(false);
+  const initialHashTargetRef = useRef<string | null>(null);
 
   // --- CONFIG ------------------------------------------------------------
   const MIN_ZOOM = 1;
@@ -169,8 +170,21 @@ export default function Home() {
             const homeCenter = viewer.viewport.getCenter();
             homeCenterRef.current = { x: homeCenter.x, y: homeCenter.y };
 
-            // Start at home position with MIN_ZOOM
-            viewer.viewport.zoomTo(MIN_ZOOM, homeCenter, true);
+            // Check if we're navigating to #intro - if so, start zoomed in
+            const isIntroNavigation = window.location.hash === "#intro";
+            
+            if (isIntroNavigation) {
+              // Start zoomed into the random target (like at the end of the scroll animation)
+              const targetCenter = new OpenSeadragon.Point(
+                randomTarget.x / 100,
+                randomTarget.y / 100
+              );
+              viewer.viewport.panTo(targetCenter, true);
+              viewer.viewport.zoomTo(MAX_ZOOM, targetCenter, true);
+            } else {
+              // Normal start: begin at home position with MIN_ZOOM
+              viewer.viewport.zoomTo(MIN_ZOOM, homeCenter, true);
+            }
 
             setImageLoaded(true);
           });
@@ -208,31 +222,70 @@ export default function Home() {
     };
   }, [skipIntro, randomTarget]);
 
-  // If we land on the page with a section hash, skip the zoom intro
+  // If we land on the page with a section hash, handle navigation
   useEffect(() => {
     if (typeof window === "undefined") return;
     const hash = window.location.hash;
     if (!hash) return;
 
     const targetId = hash.replace("#", "");
-    const validTargets = new Set(["work"]);
+    const validTargets = new Set(["work", "intro"]);
     if (!validTargets.has(targetId)) return;
 
-    setSkipIntro(true);
+    // Store the hash target so scroll handler knows not to hide scrollbar
+    initialHashTargetRef.current = targetId;
+
+    // Only skip intro entirely for "work" - for "intro" keep collage accessible
+    if (targetId === "work") {
+      setSkipIntro(true);
+    }
+
     document.documentElement.classList.add("show-scrollbar");
     document.body.classList.add("show-scrollbar");
 
+    // Skip animations for content when navigating via hash
+    document.body.classList.add("skip-intro-animations");
+
     const scrollToTarget = () => {
-      const el = document.getElementById(targetId);
-      if (el) {
-        el.scrollIntoView({
-          behavior: "instant",
-          block: "start",
-        } as ScrollIntoViewOptions);
+      if (targetId === "intro") {
+        // For "intro": scroll to a position just past the zoom phase boundary
+        // This puts us at the start of the intro section content
+        // Layout when zoomComplete=true: 300vh spacer + 100vh collage (relative) + intro
+        // We want to land at the intro, which is at ~400vh
+        const zoomPhaseHeight = window.innerHeight * 3; // 300vh
+        const collageContainerHeight = window.innerHeight; // 100vh
+        const introPosition = zoomPhaseHeight + collageContainerHeight;
+        
+        // Set up state as if we're at the end of the zoom animation:
+        // - zoomComplete: true (so container becomes relative)
+        // - scrollProgress: 1 (fully zoomed)
+        // - showCaption/captionRendered: true (so caption shows when scrolling up)
+        setZoomComplete(true);
+        setScrollProgress(1);
+        setShowCaption(true);
+        setCaptionRendered(true);
+        
+        // Wait a frame for React to update the layout, then scroll
+        requestAnimationFrame(() => {
+          window.scrollTo({ top: introPosition, behavior: "instant" });
+          // Clear the ref after scrolling is complete
+          initialHashTargetRef.current = null;
+        });
+      } else {
+        const el = document.getElementById(targetId);
+        if (el) {
+          el.scrollIntoView({
+            behavior: "instant",
+            block: "start",
+          } as ScrollIntoViewOptions);
+        }
+        // Clear the ref after scrolling is complete
+        initialHashTargetRef.current = null;
       }
     };
 
-    const timeoutId = window.setTimeout(scrollToTarget, 0);
+    // Delay to ensure layout is ready (OpenSeadragon container needs time to initialize)
+    const timeoutId = window.setTimeout(scrollToTarget, 150);
     return () => {
       window.clearTimeout(timeoutId);
     };
@@ -331,7 +384,8 @@ export default function Home() {
             return prevZoomComplete;
           });
 
-          if (newZoomComplete) {
+          // Don't hide scrollbar during initial hash navigation
+          if (newZoomComplete || initialHashTargetRef.current) {
             document.documentElement.classList.add("show-scrollbar");
             document.body.classList.add("show-scrollbar");
           } else {
@@ -346,7 +400,12 @@ export default function Home() {
     };
 
     window.addEventListener("scroll", handleScroll, { passive: true });
-    handleScroll();
+    
+    // Only run initial handleScroll if not doing hash navigation
+    // (hash navigation will trigger a scroll event which will call handleScroll)
+    if (!initialHashTargetRef.current) {
+      handleScroll();
+    }
 
     return () => {
       window.removeEventListener("scroll", handleScroll);
