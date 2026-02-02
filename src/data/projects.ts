@@ -7,7 +7,7 @@ export const projects: Project[] = [
     category: "Software Engineer, Design System Team Lead",
     thumbnail: "/images/lucid-logo.png",
     slug: "lucid",
-    description: "Led the design system team, creating scalable component libraries and establishing design patterns for enterprise collaboration tools.",
+    description: "Led the design system team, creating scalable, accessible component libraries and establishing design patterns for enterprise collaboration tools.",
     showcaseMedia: {
       type: "image",
       src: "/images/lucid/design-system-tabs.png",

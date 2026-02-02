@@ -1,6 +1,8 @@
+"use client";
+
 import Link from "next/link";
 import Image from "next/image";
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import ProjectHeader from "@/components/ProjectHeader";
 import TechnicalStack from "@/components/TechnicalStack";
 import Button from "@/components/Button";
@@ -53,57 +55,98 @@ export default function ProjectLayout({
   websiteButtonText = "Visit Website",
   newsAndAwards,
 }: ProjectLayoutProps) {
+  const elementsRef = useRef<HTMLElement[]>([]);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("is-visible");
+          }
+        });
+      },
+      {
+        threshold: 0.1,
+        rootMargin: "0px 0px -50px 0px",
+      }
+    );
+
+    elementsRef.current.forEach((el) => {
+      if (el) observer.observe(el);
+    });
+
+    return () => observer.disconnect();
+  }, []);
+
+  const addToRefs = (el: HTMLElement | null) => {
+    if (el && !elementsRef.current.includes(el)) {
+      elementsRef.current.push(el);
+    }
+  };
+
   return (
     <>
-      <div className="fixed top-1/2 left-8 -translate-y-1/2">
+      {/* Side Navigation - hidden on mobile */}
+      <div className="hidden lg:block fixed top-1/2 left-8 -translate-y-1/2 z-50">
         <div className="sideways-lr flex flex-row items-center justify-center gap-x-40">
           <Link
             href="/#work"
-            className="text-foreground/60 hover:text-foreground transition-colors text-sm"
+            className="text-foreground/40 hover:text-foreground transition-colors duration-300 text-sm tracking-wider"
           >
             Work
           </Link>
           <Link
-            href="/#contact"
-            className="text-foreground/60 hover:text-foreground transition-colors text-sm"
+            href="mailto:meredithvf@gmail.com"
+            className="text-foreground/40 hover:text-foreground transition-colors duration-300 text-sm tracking-wider"
           >
             Contact
           </Link>
         </div>
       </div>
-      <div className="fixed top-1/2 right-8 -translate-y-1/2">
+      <div className="hidden lg:block fixed top-1/2 right-8 -translate-y-1/2 z-50">
         <div className="vertical-lr flex flex-row items-center justify-center gap-x-40">
           <Link
-            href="/#about"
-            className="text-foreground/60 hover:text-foreground transition-colors text-sm"
+            href="/#intro"
+            className="text-foreground/40 hover:text-foreground transition-colors duration-300 text-sm tracking-wider"
           >
-            About
+            Home
           </Link>
-          <Link
-            href="/#resume"
-            className="text-foreground/60 hover:text-foreground transition-colors text-sm"
+          <a
+            href="/resume.pdf"
+            download="meredith-von-feldt-resume.pdf"
+            className="text-foreground/40 hover:text-foreground transition-colors duration-300 text-sm tracking-wider"
           >
             Resume
-          </Link>
+          </a>
         </div>
       </div>
 
       <ProjectHeader title={title} />
 
-      <div className="min-h-screen pb-20 mx-20">
+      <div className="min-h-screen pb-20 px-6 md:px-12 lg:mx-20">
         <div className="max-w-6xl mx-auto">
+          {/* Category & Overview Section */}
           <div className="mb-16">
-            <p className="text-2xl mb-6">{category}</p>
+            <p
+              ref={addToRefs}
+              className="animate-on-scroll text-sm uppercase tracking-[0.2em] text-foreground/50 mb-6"
+            >
+              {category}
+            </p>
             <div className="w-24 h-px bg-foreground/20 mb-8"></div>
             {(overviewText || websiteUrl) && (
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 items-center">
+              <div
+                ref={addToRefs}
+                className="animate-on-scroll delay-100 grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12 items-start"
+              >
                 {overviewText && (
-                  <p className="text-xl text-foreground/80 leading-relaxed max-w-3xl lg:col-span-2">
+                  <div className="text-xl text-foreground/80 leading-relaxed max-w-3xl lg:col-span-2">
                     {overviewText}
-                  </p>
+                  </div>
                 )}
                 {websiteUrl && (
-                  <div className="flex justify-center items-center lg:col-span-1">
+                  <div className="flex justify-start lg:justify-center items-start lg:col-span-1 lg:pt-1">
                     <Button href={websiteUrl}>{websiteButtonText} →</Button>
                   </div>
                 )}
@@ -113,38 +156,46 @@ export default function ProjectLayout({
 
           {/* Overview Section with Video/Image */}
           {overviewMedia && (
-            <section className="mb-20">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
+            <section className="mb-24">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-start">
                 {/* Media */}
-                <div className="relative w-full">
-                  {overviewMedia.type === "video" ? (
-                    <video
-                      style={{ margin: "-1px" }}
-                      className="w-full rounded-lg shadow-2xl"
-                      autoPlay
-                      loop
-                      muted
-                      playsInline
-                    >
-                      <source src={overviewMedia.src} type="video/mp4" />
-                      Your browser does not support the video tag.
-                    </video>
-                  ) : (
-                    <Image
-                      src={overviewMedia.src}
-                      alt={overviewMedia.alt || title}
-                      width={800}
-                      height={600}
-                      className="w-full h-auto rounded-lg shadow-2xl"
-                    />
-                  )}
+                <div
+                  ref={addToRefs}
+                  className="animate-on-scroll delay-200 relative w-full"
+                >
+                  <div className="overflow-hidden rounded-sm">
+                    {overviewMedia.type === "video" ? (
+                      <video
+                        style={{ margin: "-1px" }}
+                        className="w-full shadow-xl hover:scale-[1.02] transition-transform duration-500"
+                        autoPlay
+                        loop
+                        muted
+                        playsInline
+                      >
+                        <source src={overviewMedia.src} type="video/mp4" />
+                        Your browser does not support the video tag.
+                      </video>
+                    ) : (
+                      <Image
+                        src={overviewMedia.src}
+                        alt={overviewMedia.alt || title}
+                        width={800}
+                        height={600}
+                        className="w-full h-auto shadow-xl hover:scale-[1.02] transition-transform duration-500"
+                      />
+                    )}
+                  </div>
                 </div>
                 {/* Overview Text */}
                 {overviewDescription && (
-                  <div className="flex flex-col justify-between h-full">
-                    <div className="text-xl text-foreground/80 leading-relaxed space-y-4">
-                      <p>{overviewDescription}</p>
-                    </div>
+                  <div
+                    ref={addToRefs}
+                    className="animate-on-scroll delay-300 flex flex-col justify-center h-full lg:pl-4"
+                  >
+                    <p className="text-lg md:text-xl text-foreground/70 leading-relaxed">
+                      {overviewDescription}
+                    </p>
                   </div>
                 )}
               </div>
@@ -153,28 +204,38 @@ export default function ProjectLayout({
 
           {/* Key Features */}
           {features && features.length > 0 && (
-            <section className="mb-20">
-              <h2 className="text-3xl md:text-4xl font-light mb-6">
+            <section className="mb-24">
+              <h2
+                ref={addToRefs}
+                className="animate-on-scroll display-heading text-3xl md:text-4xl mb-4"
+              >
                 {featuresTitle}
               </h2>
               <div className="w-24 h-px bg-foreground/20 mb-12"></div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
                 {features?.map((feature, index) => (
-                  <div key={index}>
-                    <Image
-                      src={feature.image}
-                      alt={feature.alt}
-                      width={300}
-                      height={200}
-                      className="w-full h-auto rounded-sm mb-4"
-                    />
+                  <div
+                    key={index}
+                    ref={addToRefs}
+                    className={`animate-on-scroll group`}
+                    style={{ animationDelay: `${(index + 1) * 100}ms` }}
+                  >
+                    <div className="overflow-hidden rounded-sm mb-4">
+                      <Image
+                        src={feature.image}
+                        alt={feature.alt}
+                        width={300}
+                        height={200}
+                        className="w-full h-auto group-hover:scale-105 transition-transform duration-500"
+                      />
+                    </div>
                     {feature.title && (
-                      <h3 className="text-lg font-light mb-2">
+                      <h3 className="text-lg font-light mb-2 group-hover:text-foreground transition-colors duration-300">
                         {feature.title}
                       </h3>
                     )}
                     {feature.description && (
-                      <p className="text-foreground/70 text-sm leading-relaxed">
+                      <p className="text-foreground/60 text-sm leading-relaxed">
                         {feature.description}
                       </p>
                     )}
@@ -186,18 +247,23 @@ export default function ProjectLayout({
 
           {/* Technical Stack */}
           {technologies.length > 0 && (
-            <TechnicalStack technologies={technologies} />
+            <div ref={addToRefs} className="animate-on-scroll">
+              <TechnicalStack technologies={technologies} />
+            </div>
           )}
 
           {/* News and Awards */}
           {newsAndAwards && newsAndAwards.length > 0 && (
-            <section className="mb-20 mt-20">
-              <h2 className="text-3xl md:text-4xl font-light mb-6">
+            <section className="mb-24 mt-24">
+              <h2
+                ref={addToRefs}
+                className="animate-on-scroll display-heading text-3xl md:text-4xl mb-4"
+              >
                 News and Awards
               </h2>
               <div className="w-24 h-px bg-foreground/20 mb-12"></div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {newsAndAwards.map((item, index) => {
                   const Component = item.url ? "a" : "div";
                   const props = item.url
@@ -212,14 +278,18 @@ export default function ProjectLayout({
                   return (
                     <Component
                       key={index}
+                      ref={(el: HTMLElement | null) => {
+                        if (el) addToRefs(el);
+                      }}
                       {...props}
-                      className={`${
+                      className={`animate-on-scroll ${
                         isClickable ? "group" : ""
-                      } block border border-foreground/20 ${
+                      } block border border-foreground/10 ${
                         isClickable
-                          ? "hover:border-foreground/40 hover:bg-foreground/5 cursor-pointer"
+                          ? "hover:border-foreground/30 hover:bg-foreground/[0.02] cursor-pointer"
                           : ""
-                      } transition-all rounded-sm overflow-hidden`}
+                      } transition-all duration-300 rounded-sm overflow-hidden`}
+                      style={{ animationDelay: `${(index + 1) * 100}ms` }}
                     >
                       {item.image && (
                         <div className="relative w-full h-48 overflow-hidden bg-foreground/5">
@@ -227,7 +297,7 @@ export default function ProjectLayout({
                             src={item.image}
                             alt={item.imageAlt || item.title}
                             fill
-                            className={`object-cover transition-transform duration-300 ${
+                            className={`object-cover transition-transform duration-500 ${
                               isClickable ? "group-hover:scale-105" : ""
                             }`}
                           />
@@ -237,18 +307,18 @@ export default function ProjectLayout({
                         <h4
                           className={`text-lg font-light mb-3 ${
                             isClickable
-                              ? "group-hover:text-foreground transition-colors"
+                              ? "group-hover:text-foreground transition-colors duration-300"
                               : ""
                           }`}
                         >
                           {item.title}
                         </h4>
-                        <div className="flex items-center gap-2 text-sm text-foreground/60">
+                        <div className="flex items-center gap-2 text-sm text-foreground/50">
                           {(item.source || item.organization) && (
                             <span>{item.source || item.organization}</span>
                           )}
                           {(item.source || item.organization) && item.date && (
-                            <span>•</span>
+                            <span className="text-foreground/30">•</span>
                           )}
                           {item.date && <span>{item.date}</span>}
                         </div>
@@ -259,6 +329,22 @@ export default function ProjectLayout({
               </div>
             </section>
           )}
+
+          {/* Back to Work Link */}
+          <div
+            ref={addToRefs}
+            className="animate-on-scroll pt-12 border-t border-foreground/10"
+          >
+            <Link
+              href="/#work"
+              className="group inline-flex items-center gap-3 text-foreground/60 hover:text-foreground transition-colors duration-300"
+            >
+              <span className="group-hover:-translate-x-2 transition-transform duration-300">
+                ←
+              </span>
+              <span className="text-lg">Back to all work</span>
+            </Link>
+          </div>
         </div>
       </div>
     </>

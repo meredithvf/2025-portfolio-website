@@ -21,7 +21,7 @@ export default function Button({
   variant = "inverted",
 }: ButtonProps) {
   const baseStyles =
-    "px-6 py-3 text-xl bg-foreground text-background border-foreground hover:bg-foreground/5 hover:text-foreground hover:border-foreground inline-block border transition-colors rounded-sm";
+    "px-6 py-3 text-xl bg-foreground text-background border-foreground hover:bg-foreground/5 hover:text-foreground hover:border-foreground inline-block border rounded-sm transition-all duration-300 hover:translate-x-2 hover:scale-110 origin-left";
 
   const combinedClassName = `${baseStyles} ${className}`;
 

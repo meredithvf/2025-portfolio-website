@@ -30,25 +30,19 @@ export default async function ProjectDetailPage({
         category={project.category}
         overviewText={
           <>
-            I worked on the design system team at Lucid Software from 2022-2025.
-            I became a central technical and organizational leader, driving
-            accessibility, design-system quality, and cross-org alignment. I led
-            several high-impact projects—including Accessibility Focus Testing,
-            On-Canvas Keyboard Navigation, and the Design System Catalog Update—
-            while also managing external contractors and taking on the role of
-            team lead. I partnered closely with UX, engineering, legal, and
-            product to advance WCAG compliance, publish Lucid's accessibility
-            statement, and introduce scalable testing and tracking frameworks.
-            My work helped the organization accelerate its accessibility goals,
-            reduce design-system-related friction, and preserve UI quality
-            across products. You can view Lucid's accessibility page{" "}
+            I worked on the design system team at Lucid Software from 2022-2025,
+            eventually becoming team lead. I drove accessibility, design-system
+            quality, and cross-org alignment—leading projects like Accessibility
+            Focus Testing, On-Canvas Keyboard Navigation, and the Design System
+            Catalog Update. I partnered with UX, engineering, legal, and product
+            to advance WCAG compliance and publish Lucid's{" "}
             <a
               href="https://www.lucid.co/accessibility"
               target="_blank"
               rel="noopener noreferrer"
               className="underline hover:text-foreground transition-colors"
             >
-              here
+              accessibility statement
             </a>
             .
           </>
@@ -57,46 +51,38 @@ export default async function ProjectDetailPage({
           type: "image",
           src: "https://help.lucid.co/hc/article_attachments/34335027337876",
         }}
-        overviewDescription="Beyond technical execution, I took ownership of team training, 
-        documentation strategy, mentoring, and process optimization. 
-        I taught Lucid Design System courses, created new onboarding materials, 
-        led tech talks, improved sprint rituals, 
-        and launched documentation and ownership initiatives 
-        that reduced recurring questions and increased engineering self-sufficiency. 
-        Throughout my time on the team, I focused on elevating our execution, 
-        strengthening cross-team communication, 
-        and helping my teammates feel supported and successful."
+        overviewDescription="Beyond technical work, I led team training, documentation, and mentoring. I taught design system courses, created onboarding materials, led tech talks, and improved processes to increase engineering self-sufficiency."
         featuresTitle="Some of the Projects I Worked On"
         features={[
           {
             image:
               "https://help.lucid.co/hc/article_attachments/34335027337876",
             alt: "Accessibility Statement",
-            title: "Accessibilty Statement Release",
+            title: "Accessibility Statement Release",
             description:
-              "As the team lead during release, I played a key role in helping Lucid publish its accessibility statement by leading the engineering work necessary to validate, document, and formalize our compliance story. I partnered closely with legal, UX, and engineering to ensure the statement accurately reflected our technical standards and in-product accessibility posture. This included auditing core components, verifying WCAG-aligned behaviors, and establishing the testing frameworks and documentation needed to support our claims. By driving both the engineering readiness and the cross-team coordination, I helped Lucid confidently release a statement that met legal expectations, represented our accessibility progress, and positioned the company for future compliance milestones.",
+              "Led engineering work to publish Lucid's accessibility statement. Audited, updated, and created core components, verified WCAG compliance, and coordinated with legal, UX, and engineering to formalize our accessibility posture.",
           },
           {
             image: "/images/lucid/design-system-tabs.png",
             alt: "Screenshot example of Lucid's design system in use",
-            title: "Design System Component Updates",
+            title: "Design System Components",
             description:
-              "I led significant modernization across the design system, improving core components, refining architectural patterns, and making updates easier and more accessible for engineers to adopt. For example I redesigned the top tabs component, but my contributions spanned many components and included developing clear documentation, guiding implementation paths, and strengthening ownership and consistency. By proactively supporting engineers and streamlining patterns, I helped ensure that design system updates were performant, accessible, and straightforward to use across Lucid’s products.",
+              "Modernized core components like the tabs system—improving architecture, accessibility, and developer experience. Created documentation and patterns to make components easier for designers, customer, and enginners to use.",
           },
           {
             image: "/images/lucid/design-system-sticky-note.png",
             alt: "Screenshot example of Lucid's design system in use",
             title: "Design System Catalog Revamp",
             description:
-              "I led a multi-quarter initiative to revamp the internal Design System website/catalog, making it a more meaningful and discoverable resource. I conducted multiple rounds of surveys and interviews, redesigned component pages, added clearer replacement instructions, improved the sandbox, tightened ownership boundaries, and shaped the implementation work. These changes reduced inconsistency, clarified documentation, and improved the engineering experience across Lucid.",
+              "Led a multi-quarter initiative to overhaul the internal design system catalog. Redesigned component pages, improved documentation, and enhanced discoverability based on engineer feedback.",
           },
           {
             image:
               "https://help.lucid.co/hc/article_attachments/34335027340052",
             alt: "Accessibility Testing",
-            title: "Accessibilty Testing Infrastructure",
+            title: "Accessibility Testing Infrastructure",
             description:
-              "I significantly expanded Lucid’s accessibility testing capabilities by introducing new testing infrastructure, standardizing focus and keyboard-navigation test patterns, and driving organization-wide efforts to align with WCAG requirements. I created a new testing tool and improved the broader harness architecture to make writing accessible frontend tests simpler, faster, and more consistent. I also led testing epics, added automated coverage across core components, and helped define a new KPI and parser for tracking accessibility violations in the codebase. Together, these efforts enabled Lucid to scale accessibility testing, catch issues earlier, and build more inclusive, compliant user experiences.",
+              "Built new testing tools and standardized keyboard/focus test patterns. Introduced automated accessibility coverage and a KPI tracking system for violations across the codebase.",
           },
         ]}
         technologies={["Typescript", "Angular", "HTML/CSS"]}
