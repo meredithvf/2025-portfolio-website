@@ -53,7 +53,7 @@ export default function Footer() {
             ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}
           `}
         >
-          <p className="text-sm uppercase tracking-[0.2em] text-foreground/50 mb-4">
+          <p className="text-sm uppercase tracking-[0.16em] font-medium text-foreground/[0.66] mb-4">
             Let's connect
           </p>
           <a
@@ -74,14 +74,14 @@ export default function Footer() {
         `}
       >
         <div className="flex flex-col md:flex-row items-center justify-between gap-6 pt-8 border-t border-foreground/10">
-          <p className="text-sm text-foreground/40">
+          <p className="text-sm text-foreground/[0.66]">
             © {currentYear} Meredith SunshineVon Feldt
           </p>
           
           <div className="flex items-center gap-8">
             <button
               onClick={handleResumeDownload}
-              className="text-sm text-foreground/60 hover:text-foreground transition-colors duration-300 link-underline"
+              className="text-sm text-foreground/[0.66] hover:text-foreground transition-colors duration-300 link-underline"
               aria-label="Download resume as PDF"
             >
               Download Resume
@@ -89,7 +89,7 @@ export default function Footer() {
             
             <a
               href="/#intro"
-              className="text-sm text-foreground/60 hover:text-foreground transition-colors duration-300"
+              className="text-sm text-foreground/[0.66] hover:text-foreground transition-colors duration-300"
               aria-label="Scroll back to top"
             >
               Back to top ↑

@@ -131,7 +131,7 @@ export default function ProjectLayout({
           <div className="mb-16">
             <p
               ref={addToRefs}
-              className="animate-on-scroll text-sm uppercase tracking-[0.2em] text-foreground/50 mb-6"
+              className="animate-on-scroll text-sm uppercase tracking-[0.16em] font-medium text-foreground/[0.66] mb-6"
             >
               {category}
             </p>
@@ -314,7 +314,7 @@ export default function ProjectLayout({
                         >
                           {item.title}
                         </h4>
-                        <div className="flex items-center gap-2 text-sm text-foreground/50">
+                        <div className="flex items-center gap-2 text-sm text-foreground/[0.66]">
                           {(item.source || item.organization) && (
                             <span>{item.source || item.organization}</span>
                           )}

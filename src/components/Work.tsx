@@ -118,7 +118,7 @@ export default function Work({ projects }: WorkProps) {
                       <h3 className="text-lg md:text-xl font-light group-hover:text-foreground transition-colors duration-300">
                         {project.title}
                       </h3>
-                      <p className="text-sm text-foreground/50 mt-1">
+                      <p className="text-sm text-foreground/[0.66] mt-1">
                         {project.category}
                       </p>
                     </div>

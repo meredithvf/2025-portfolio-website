@@ -55,7 +55,7 @@ export default function Intro() {
           <div className="lg:col-span-7">
             <p
               ref={addToRefs}
-              className="animate-on-scroll text-sm uppercase tracking-[0.2em] text-foreground/50 mb-6"
+              className="animate-on-scroll text-sm uppercase tracking-[0.16em] font-medium text-foreground/[0.66] mb-6"
             >
               Software Engineer & Designer
             </p>
@@ -69,7 +69,7 @@ export default function Intro() {
             
             <div
               ref={addToRefs}
-              className="animate-on-scroll delay-200 space-y-4 text-lg text-foreground/70 leading-relaxed max-w-xl"
+              className="animate-on-scroll delay-200 space-y-4 text-lg text-foreground/[0.68] leading-relaxed max-w-xl"
             >
               <p className="mb-4">
                 My name is Meredith, obviously. You just saw a few photos
@@ -97,12 +97,12 @@ export default function Intro() {
               >
                 <a
                   href="#work"
-                  className="group flex items-center justify-between py-3 border-b border-foreground/10 hover:border-foreground/40 transition-colors duration-300"
+                  className="group flex items-center justify-between py-3 border-b border-foreground/30 hover:border-foreground/70 transition-colors duration-300"
                 >
                   <span className="display-heading text-2xl md:text-3xl group-hover:translate-x-2 group-hover:scale-110 transition-transform duration-300">
                     Work
                   </span>
-                  <span className="text-2xl text-foreground/30 group-hover:text-foreground/70 group-hover:-translate-x-1 transition-all duration-300">
+                  <span className="text-2xl text-foreground/[0.68] group-hover:text-foreground/70 group-hover:-translate-x-1 transition-all duration-300">
                     →
                   </span>
                 </a>
@@ -114,13 +114,13 @@ export default function Intro() {
               >
                 <button
                   onClick={handleResumeDownload}
-                  className="group flex items-center justify-between py-3 border-b border-foreground/10 hover:border-foreground/40 transition-colors duration-300 w-full text-left"
+                  className="group flex items-center justify-between py-3 border-b border-foreground/30 hover:border-foreground/70 transition-colors duration-300 w-full text-left"
                   aria-label="Download resume as PDF"
                 >
                   <span className="display-heading text-2xl md:text-3xl group-hover:translate-x-2 group-hover:scale-110 transition-transform duration-300">
                     Resume
                   </span>
-                  <span className="text-lg text-foreground/30 group-hover:text-foreground/70 group-hover:-translate-x-1 transition-colors duration-300">
+                  <span className="text-lg text-foreground/[0.68] group-hover:text-foreground group-hover:-translate-x-1 transition-colors duration-300">
                     ↓ PDF
                   </span>
                 </button>
@@ -132,13 +132,13 @@ export default function Intro() {
               >
                 <a
                   href="mailto:meredithvf@gmail.com"
-                  className="group flex items-center justify-between py-3 border-b border-foreground/10 hover:border-foreground/40 transition-colors duration-300"
+                  className="group flex items-center justify-between py-3 border-b border-foreground/30 hover:border-foreground/70 transition-colors duration-300"
                   aria-label="Send email to meredithvf@gmail.com"
                 >
                   <span className="display-heading text-2xl md:text-3xl group-hover:translate-x-2 group-hover:scale-110 transition-transform duration-300">
                     Connect
                   </span>
-                  <span className="text-sm text-foreground/30 group-hover:text-foreground/70 group-hover:-translate-x-1 transition-colors duration-300 font-mono">
+                  <span className="text-sm text-foreground/[0.68] group-hover:text-foreground group-hover:-translate-x-1 transition-colors duration-300">
                     meredithvf@gmail.com
                   </span>
                 </a>

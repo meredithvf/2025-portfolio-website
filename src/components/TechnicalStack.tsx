@@ -5,7 +5,7 @@ interface TechnicalStackProps {
 export default function TechnicalStack({ technologies }: TechnicalStackProps) {
   return (
     <section className="mb-20">
-      <p className="text-sm uppercase tracking-[0.2em] text-foreground/50 mb-4">
+      <p className="text-sm uppercase tracking-[0.16em] font-medium text-foreground/[0.66] mb-4">
         Technologies
       </p>
       <div className="flex flex-wrap items-center gap-3">

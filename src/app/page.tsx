@@ -492,7 +492,11 @@ export default function Home() {
       </>
 
       {/* Main Content */}
-      <main className="relative bg-background" style={{ zIndex: 1 }}>
+      <main
+        id="main-content"
+        className="relative bg-background"
+        style={{ zIndex: 1 }}
+      >
         <Intro />
         <WorkShowcase projects={projects} />
         <Footer />

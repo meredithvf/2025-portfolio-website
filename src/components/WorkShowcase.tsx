@@ -46,7 +46,7 @@ export default function WorkShowcase({ projects }: WorkShowcaseProps) {
               : "opacity-0 translate-y-12"
           }`}
         >
-          <p className="text-sm uppercase tracking-[0.2em] text-foreground/50 mb-4">
+          <p className="text-sm uppercase tracking-[0.16em] font-medium text-foreground/[0.66] mb-4">
             Selected Work
           </p>
           <h2

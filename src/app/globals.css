@@ -50,6 +50,33 @@ body::-webkit-scrollbar {
   display: none; /* Chrome, Safari, Opera */
 }
 
+.skip-link {
+  position: absolute;
+  left: 1rem;
+  top: -9999px;
+  z-index: 1000;
+  padding: 0.6rem 0.9rem;
+  border-radius: 0.25rem;
+  background: #1a1a18;
+  color: #ece7c1;
+  font-size: 0.875rem;
+  text-decoration: none;
+}
+
+.skip-link:focus-visible {
+  top: 1rem;
+  outline: 2px solid #ece7c1;
+  outline-offset: 2px;
+}
+
+a:focus-visible,
+button:focus-visible {
+  outline: 2px solid #1a1a18;
+  outline-offset: 2px;
+  border-radius: 2px;
+  box-shadow: 0 0 0 4px rgba(236, 231, 193, 0.9);
+}
+
 /* Show scrollbar when zoom is complete (for below-the-fold content) */
 html.show-scrollbar,
 body.show-scrollbar {
