@@ -285,7 +285,7 @@ export default function ProjectSlide({
               href={`/work/${project.slug}#project-${project.slug}`}
               className="inline-flex items-center gap-3 text-xl text-slate-800 group-hover:scale-110 transition-colors"
             >
-              <span>View Project</span>
+              <span>See More</span>
               <span className="group-hover:translate-x-2 transition-transform">
                 →
               </span>

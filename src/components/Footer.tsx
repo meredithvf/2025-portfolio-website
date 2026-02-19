@@ -75,7 +75,7 @@ export default function Footer() {
       >
         <div className="flex flex-col md:flex-row items-center justify-between gap-6 pt-8 border-t border-foreground/10">
           <p className="text-sm text-foreground/[0.66]">
-            © {currentYear} Meredith SunshineVon Feldt
+            © {currentYear} Meredith Sunshine Von Feldt
           </p>
           
           <div className="flex items-center gap-8">
