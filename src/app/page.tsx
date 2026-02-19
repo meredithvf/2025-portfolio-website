@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, useMemo } from "react";
+import { useEffect, useRef, useState } from "react";
 import Intro from "@/components/Intro";
 import WorkShowcase from "@/components/WorkShowcase";
 import Footer from "@/components/Footer";
@@ -15,7 +15,6 @@ export default function Home() {
   const [zoomComplete, setZoomComplete] = useState(false);
   const [showCaption, setShowCaption] = useState(false);
   const [captionRendered, setCaptionRendered] = useState(false);
-  const [skipIntro, setSkipIntro] = useState(false);
   const initialHashTargetRef = useRef<string | null>(null);
 
   // --- CONFIG ------------------------------------------------------------
@@ -78,14 +77,43 @@ export default function Home() {
     const randomKey = targetKeys[Math.floor(Math.random() * targetKeys.length)];
     return TARGETS[randomKey];
   });
+  const randomTargetRef = useRef(randomTarget);
   const wasZoomedInRef = useRef(false);
   const homeCenterRef = useRef<{ x: number; y: number } | null>(null);
+
+  useEffect(() => {
+    randomTargetRef.current = randomTarget;
+  }, [randomTarget]);
 
   // Pick a new random target when user zooms all the way back out
   const pickNewRandomTarget = () => {
     const targetKeys = Object.keys(TARGETS) as (keyof typeof TARGETS)[];
     const randomKey = targetKeys[Math.floor(Math.random() * targetKeys.length)];
-    setRandomTarget(TARGETS[randomKey]);
+    const nextTarget = TARGETS[randomKey];
+    randomTargetRef.current = nextTarget;
+    setRandomTarget(nextTarget);
+  };
+
+  const applyViewerFromProgress = (progress: number) => {
+    const viewer = viewerInstanceRef.current;
+    const homeCenter = homeCenterRef.current;
+    if (!viewer || !homeCenter) return;
+
+    const targetCenter = {
+      x: randomTargetRef.current.x / 100,
+      y: randomTargetRef.current.y / 100,
+    };
+
+    const zoomScale = MIN_ZOOM * Math.pow(MAX_ZOOM / MIN_ZOOM, progress);
+    const panProgress = 1 - Math.pow(1 - progress, 2.5);
+
+    const interpolatedCenter = {
+      x: homeCenter.x + panProgress * (targetCenter.x - homeCenter.x),
+      y: homeCenter.y + panProgress * (targetCenter.y - homeCenter.y),
+    };
+
+    viewer.viewport.panTo(interpolatedCenter, true);
+    viewer.viewport.zoomTo(zoomScale, interpolatedCenter, true);
   };
 
   // -----------------------------------------------------------------------
@@ -110,7 +138,7 @@ export default function Home() {
 
   // Initialize OpenSeadragon with preloaded image
   useEffect(() => {
-    if (!viewerRef.current || skipIntro || typeof window === "undefined") {
+    if (!viewerRef.current || typeof window === "undefined") {
       return;
     }
 
@@ -170,21 +198,28 @@ export default function Home() {
             const homeCenter = viewer.viewport.getCenter();
             homeCenterRef.current = { x: homeCenter.x, y: homeCenter.y };
 
-            // Check if we're navigating to #intro - if so, start zoomed in
-            const isIntroNavigation = window.location.hash === "#intro";
-            
-            if (isIntroNavigation) {
-              // Start zoomed into the random target (like at the end of the scroll animation)
-              const targetCenter = new OpenSeadragon.Point(
-                randomTarget.x / 100,
-                randomTarget.y / 100
-              );
-              viewer.viewport.panTo(targetCenter, true);
-              viewer.viewport.zoomTo(MAX_ZOOM, targetCenter, true);
-            } else {
-              // Normal start: begin at home position with MIN_ZOOM
-              viewer.viewport.zoomTo(MIN_ZOOM, homeCenter, true);
-            }
+            // Initialize from current scroll position so hash navigations
+            // (e.g. /#work) and route restores don't briefly show a stale
+            // fully zoomed-out frame before scroll handlers run.
+            const scrollTop = window.scrollY;
+            const windowHeight = window.innerHeight;
+            const zoomPhaseHeight = windowHeight * 3;
+            const initialProgress = Math.min(scrollTop / zoomPhaseHeight, 1);
+            const initialZoom =
+              MIN_ZOOM * Math.pow(MAX_ZOOM / MIN_ZOOM, initialProgress);
+            const currentTarget = randomTargetRef.current;
+            const targetCenter = {
+              x: currentTarget.x / 100,
+              y: currentTarget.y / 100,
+            };
+            const panProgress = 1 - Math.pow(1 - initialProgress, 2.5);
+            const initialCenter = new OpenSeadragon.Point(
+              homeCenter.x + panProgress * (targetCenter.x - homeCenter.x),
+              homeCenter.y + panProgress * (targetCenter.y - homeCenter.y)
+            );
+
+            viewer.viewport.panTo(initialCenter, true);
+            viewer.viewport.zoomTo(initialZoom, initialCenter, true);
 
             setImageLoaded(true);
           });
@@ -220,7 +255,7 @@ export default function Home() {
         viewerInstanceRef.current = null;
       }
     };
-  }, [skipIntro, randomTarget]);
+  }, []);
 
   // If we land on the page with a section hash, handle navigation
   useEffect(() => {
@@ -235,11 +270,6 @@ export default function Home() {
     // Store the hash target so scroll handler knows not to hide scrollbar
     initialHashTargetRef.current = targetId;
 
-    // Only skip intro entirely for "work" - for "intro" keep collage accessible
-    if (targetId === "work") {
-      setSkipIntro(true);
-    }
-
     document.documentElement.classList.add("show-scrollbar");
     document.body.classList.add("show-scrollbar");
 
@@ -247,41 +277,36 @@ export default function Home() {
     document.body.classList.add("skip-intro-animations");
 
     const scrollToTarget = () => {
-      if (targetId === "intro") {
-        // For "intro": scroll to a position just past the zoom phase boundary
-        // This puts us at the start of the intro section content
-        // Layout when zoomComplete=true: 300vh spacer + 100vh collage (relative) + intro
-        // We want to land at the intro, which is at ~400vh
-        const zoomPhaseHeight = window.innerHeight * 3; // 300vh
-        const collageContainerHeight = window.innerHeight; // 100vh
-        const introPosition = zoomPhaseHeight + collageContainerHeight;
-        
-        // Set up state as if we're at the end of the zoom animation:
-        // - zoomComplete: true (so container becomes relative)
-        // - scrollProgress: 1 (fully zoomed)
-        // - showCaption/captionRendered: true (so caption shows when scrolling up)
-        setZoomComplete(true);
-        setScrollProgress(1);
-        setShowCaption(true);
-        setCaptionRendered(true);
-        
-        // Wait a frame for React to update the layout, then scroll
+      // Enter the same layout phase users naturally reach after scrolling down.
+      // This preserves the "fully zoomed image appears first" behavior on upward scroll.
+      setZoomComplete(true);
+      setScrollProgress(1);
+      setShowCaption(true);
+      setCaptionRendered(true);
+      wasZoomedInRef.current = true;
+
+      // Wait for layout to settle, then align to the requested anchor.
+      requestAnimationFrame(() => {
         requestAnimationFrame(() => {
-          window.scrollTo({ top: introPosition, behavior: "instant" });
-          // Clear the ref after scrolling is complete
-          initialHashTargetRef.current = null;
+          const alignToTarget = () => {
+            const el = document.getElementById(targetId);
+            if (el) {
+              el.scrollIntoView({
+                behavior: "instant",
+                block: "start",
+              } as ScrollIntoViewOptions);
+            }
+          };
+
+          alignToTarget();
+
+          // Run a second pass after one more frame to absorb late layout shifts.
+          requestAnimationFrame(() => {
+            alignToTarget();
+            initialHashTargetRef.current = null;
+          });
         });
-      } else {
-        const el = document.getElementById(targetId);
-        if (el) {
-          el.scrollIntoView({
-            behavior: "instant",
-            block: "start",
-          } as ScrollIntoViewOptions);
-        }
-        // Clear the ref after scrolling is complete
-        initialHashTargetRef.current = null;
-      }
+      });
     };
 
     // Delay to ensure layout is ready (OpenSeadragon container needs time to initialize)
@@ -291,127 +316,97 @@ export default function Home() {
     };
   }, []);
 
-  // Calculate zoom based on scroll progress (exponential for perceptually linear feel)
-  const zoomScale = useMemo(() => {
-    // Exponential interpolation: makes zoom feel linear and match the linear pan
-    // At progress 0: MIN_ZOOM, at progress 0.5: ~6x, at progress 1: MAX_ZOOM
-    return MIN_ZOOM * Math.pow(MAX_ZOOM / MIN_ZOOM, scrollProgress);
-  }, [scrollProgress]);
-
-  // Update OpenSeadragon zoom and pan based on scroll
-  useEffect(() => {
-    const viewer = viewerInstanceRef.current;
-    if (!viewer || !imageLoaded || typeof window === "undefined") {
-      return;
-    }
-
-    import("openseadragon").then((OpenSeadragon) => {
-      const homeCenter = homeCenterRef.current || { x: 0.5, y: 0.05 };
-      const targetCenter = {
-        x: randomTarget.x / 100,
-        y: randomTarget.y / 100,
-      };
-
-      // Ease-out for pan: fast at start, slow at end
-      // This makes the camera pan toward target early while zoom builds gradually
-      const panProgress = 1 - Math.pow(1 - scrollProgress, 2.5);
-
-      // Interpolate between home center and target center using eased progress
-      const interpolatedX =
-        homeCenter.x + panProgress * (targetCenter.x - homeCenter.x);
-      const interpolatedY =
-        homeCenter.y + panProgress * (targetCenter.y - homeCenter.y);
-
-      const interpolatedCenter = new OpenSeadragon.default.Point(
-        interpolatedX,
-        interpolatedY
-      );
-
-      // Pan to interpolated center and zoom simultaneously
-      viewer.viewport.panTo(interpolatedCenter, true);
-      viewer.viewport.zoomTo(zoomScale, interpolatedCenter, true);
-    });
-  }, [zoomScale, scrollProgress, imageLoaded, randomTarget]);
-
   // Handle scroll events
   useEffect(() => {
-    let ticking = false;
-    let rafId: number | null = null;
+    const syncFromScrollPosition = () => {
+      const scrollTop = window.scrollY;
+      const windowHeight = window.innerHeight;
+      const zoomPhaseHeight = windowHeight * 3;
+
+      let newProgress: number;
+      let newZoomComplete: boolean;
+
+      if (scrollTop < zoomPhaseHeight) {
+        newProgress = Math.min(scrollTop / zoomPhaseHeight, 1);
+        newZoomComplete = false;
+      } else {
+        newProgress = 1;
+        newZoomComplete = true;
+      }
+
+      setScrollProgress(newProgress);
+      applyViewerFromProgress(newProgress);
+
+      // Track if user has zoomed in, and pick new target when they zoom back out
+      if (newProgress > 0.2) {
+        wasZoomedInRef.current = true;
+      } else if (newProgress <= 0.001 && wasZoomedInRef.current) {
+        wasZoomedInRef.current = false;
+        pickNewRandomTarget();
+      }
+
+      const CAPTION_THRESHOLD = 0.85;
+      if (newProgress >= CAPTION_THRESHOLD) {
+        setShowCaption(true);
+        setCaptionRendered(true);
+      } else {
+        setShowCaption(false);
+      }
+
+      setZoomComplete((prevZoomComplete) => {
+        if (newZoomComplete && !prevZoomComplete) {
+          return true;
+        }
+        if (!newZoomComplete && prevZoomComplete) {
+          return false;
+        }
+        return prevZoomComplete;
+      });
+
+      // Don't hide scrollbar during initial hash navigation
+      if (newZoomComplete || initialHashTargetRef.current) {
+        document.documentElement.classList.add("show-scrollbar");
+        document.body.classList.add("show-scrollbar");
+      } else {
+        document.documentElement.classList.remove("show-scrollbar");
+        document.body.classList.remove("show-scrollbar");
+      }
+    };
 
     const handleScroll = () => {
-      if (!ticking) {
-        rafId = requestAnimationFrame(() => {
-          const scrollTop = window.scrollY;
-          const windowHeight = window.innerHeight;
-          const zoomPhaseHeight = windowHeight * 3;
+      syncFromScrollPosition();
+    };
 
-          let newProgress: number;
-          let newZoomComplete: boolean;
+    const forceResyncAfterHistoryRestore = () => {
+      syncFromScrollPosition();
+    };
 
-          if (scrollTop < zoomPhaseHeight) {
-            newProgress = Math.min(scrollTop / zoomPhaseHeight, 1);
-            newZoomComplete = false;
-          } else {
-            newProgress = 1;
-            newZoomComplete = true;
-          }
+    const handlePageShow = (_event: PageTransitionEvent) => {
+      forceResyncAfterHistoryRestore();
+    };
 
-          setScrollProgress(newProgress);
-
-          // Track if user has zoomed in, and pick new target when they zoom back out
-          if (newProgress > 0.2) {
-            wasZoomedInRef.current = true;
-          } else if (newProgress < 0.05 && wasZoomedInRef.current) {
-            wasZoomedInRef.current = false;
-            pickNewRandomTarget();
-          }
-
-          const CAPTION_THRESHOLD = 0.85;
-          if (newProgress >= CAPTION_THRESHOLD) {
-            setShowCaption(true);
-            setCaptionRendered(true);
-          } else {
-            setShowCaption(false);
-          }
-
-          setZoomComplete((prevZoomComplete) => {
-            if (newZoomComplete && !prevZoomComplete) {
-              return true;
-            }
-            if (!newZoomComplete && prevZoomComplete) {
-              return false;
-            }
-            return prevZoomComplete;
-          });
-
-          // Don't hide scrollbar during initial hash navigation
-          if (newZoomComplete || initialHashTargetRef.current) {
-            document.documentElement.classList.add("show-scrollbar");
-            document.body.classList.add("show-scrollbar");
-          } else {
-            document.documentElement.classList.remove("show-scrollbar");
-            document.body.classList.remove("show-scrollbar");
-          }
-
-          ticking = false;
-        });
-        ticking = true;
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        forceResyncAfterHistoryRestore();
       }
     };
 
     window.addEventListener("scroll", handleScroll, { passive: true });
+    window.addEventListener("pageshow", handlePageShow);
+    window.addEventListener("popstate", forceResyncAfterHistoryRestore);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
     
     // Only run initial handleScroll if not doing hash navigation
     // (hash navigation will trigger a scroll event which will call handleScroll)
     if (!initialHashTargetRef.current) {
-      handleScroll();
+      forceResyncAfterHistoryRestore();
     }
 
     return () => {
       window.removeEventListener("scroll", handleScroll);
-      if (rafId !== null) {
-        cancelAnimationFrame(rafId);
-      }
+      window.removeEventListener("pageshow", handlePageShow);
+      window.removeEventListener("popstate", forceResyncAfterHistoryRestore);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
       document.documentElement.classList.remove("show-scrollbar");
       document.body.classList.remove("show-scrollbar");
     };
@@ -419,82 +414,80 @@ export default function Home() {
 
   return (
     <div className="relative">
-      {!skipIntro && (
-        <>
-          <div style={{ height: "300vh" }} />
+      <>
+        <div style={{ height: "300vh" }} />
+        <div
+          ref={containerRef}
+          style={{
+            width: "100vw",
+            height: "100vh",
+            overflow: "hidden",
+            position: zoomComplete ? "relative" : "fixed",
+            top: zoomComplete ? "auto" : 0,
+            left: 0,
+            zIndex: zoomComplete ? 1 : 10,
+            backfaceVisibility: "hidden",
+            transform: "translate3d(0, 0, 0)",
+            opacity: imageLoaded ? 1 : 0,
+            transition: "opacity 0.3s ease-in",
+            pointerEvents: zoomComplete ? "none" : "auto",
+            backgroundColor: "#1a1a18",
+          }}
+        >
           <div
-            ref={containerRef}
+            ref={viewerRef}
             style={{
-              width: "100vw",
-              height: "100vh",
-              overflow: "hidden",
-              position: zoomComplete ? "relative" : "fixed",
-              top: zoomComplete ? "auto" : 0,
+              width: "100%",
+              height: "100%",
+              position: "absolute",
+              top: 0,
               left: 0,
-              zIndex: zoomComplete ? 1 : 10,
-              backfaceVisibility: "hidden",
-              transform: "translate3d(0, 0, 0)",
-              opacity: imageLoaded ? 1 : 0,
-              transition: "opacity 0.3s ease-in",
-              pointerEvents: zoomComplete ? "none" : "auto",
-              backgroundColor: "#1a1a18",
+              zIndex: 1,
+              // Improve rendering quality
+              imageRendering: "auto",
+              WebkitFontSmoothing: "antialiased",
+              MozOsxFontSmoothing: "grayscale",
             }}
-          >
+          />
+          {captionRendered && (
             <div
-              ref={viewerRef}
+              className="caption"
               style={{
-                width: "100%",
-                height: "100%",
                 position: "absolute",
-                top: 0,
-                left: 0,
-                zIndex: 1,
-                // Improve rendering quality
-                imageRendering: "auto",
-                WebkitFontSmoothing: "antialiased",
-                MozOsxFontSmoothing: "grayscale",
+                bottom: "2rem",
+                right: "2rem",
+                padding: "1rem 1.5rem",
+                backgroundColor: "#1a1a18",
+                color: "#ece7c1",
+                borderRadius: "8px",
+                maxWidth: "300px",
+                fontSize: "0.9rem",
+                lineHeight: "1.4",
+                opacity: showCaption ? 1 : 0,
+                transition: "opacity 0.6s ease-out",
+                zIndex: 10,
+                pointerEvents: showCaption ? "auto" : "none",
+                backdropFilter: "blur(4px)",
               }}
-            />
-            {captionRendered && (
-              <div
-                className="caption"
-                style={{
-                  position: "absolute",
-                  bottom: "2rem",
-                  right: "2rem",
-                  padding: "1rem 1.5rem",
-                  backgroundColor: "#1a1a18",
-                  color: "#ece7c1",
-                  borderRadius: "8px",
-                  maxWidth: "300px",
-                  fontSize: "0.9rem",
-                  lineHeight: "1.4",
-                  opacity: showCaption ? 1 : 0,
-                  transition: "opacity 0.6s ease-out",
-                  zIndex: 10,
-                  pointerEvents: showCaption ? "auto" : "none",
-                  backdropFilter: "blur(4px)",
-                }}
-              >
-                {randomTarget.caption}
-              </div>
-            )}
-            {!imageLoaded && (
-              <div
-                style={{
-                  position: "absolute",
-                  top: "50%",
-                  left: "50%",
-                  transform: "translate(-50%, -50%)",
-                  color: "white",
-                }}
-              >
-                Loading...
-              </div>
-            )}
-          </div>
-        </>
-      )}
+            >
+              {randomTarget.caption}
+            </div>
+          )}
+          {!imageLoaded && (
+            <div
+              style={{
+                position: "absolute",
+                top: "50%",
+                left: "50%",
+                transform: "translate(-50%, -50%)",
+                color: "white",
+              }}
+            >
+              Loading...
+            </div>
+          )}
+        </div>
+      </>
 
       {/* Main Content */}
       <main className="relative bg-background" style={{ zIndex: 1 }}>

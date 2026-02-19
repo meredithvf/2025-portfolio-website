@@ -88,11 +88,7 @@ export default function Footer() {
             </button>
             
             <a
-              href="#"
-              onClick={(e) => {
-                e.preventDefault();
-                window.scrollTo({ top: 0, behavior: "smooth" });
-              }}
+              href="/#intro"
               className="text-sm text-foreground/60 hover:text-foreground transition-colors duration-300"
               aria-label="Scroll back to top"
             >

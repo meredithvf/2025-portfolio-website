@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import Link from "next/link";
 
 interface ProjectHeaderProps {
   title: string;
@@ -12,6 +11,27 @@ export default function ProjectHeader({ title }: ProjectHeaderProps) {
   const [opacity, setOpacity] = useState(0);
   const [loaded, setLoaded] = useState(false);
   const sectionRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    // Force browser Back to follow the same hard hash navigation path
+    // as clicking links to /#work from project pages.
+    if (!window.history.state?.__hashBackTrap) {
+      window.history.pushState(
+        { ...(window.history.state || {}), __hashBackTrap: true },
+        "",
+        window.location.href
+      );
+    }
+
+    const handlePopState = () => {
+      window.location.href = "/#work";
+    };
+
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
 
   useEffect(() => {
     // Trigger initial animation after mount
@@ -71,7 +91,7 @@ export default function ProjectHeader({ title }: ProjectHeaderProps) {
       />
 
       {/* Back link */}
-      <Link
+      <a
         href="/#work"
         className={`absolute top-6 left-6 md:top-8 md:left-8 text-background/60 hover:text-background transition-all duration-500 flex items-center gap-2 text-sm ${
           loaded ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-4"
@@ -82,7 +102,7 @@ export default function ProjectHeader({ title }: ProjectHeaderProps) {
           ←
         </span>
         <span>Back</span>
-      </Link>
+      </a>
 
       {/* Title */}
       <h1
