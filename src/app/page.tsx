@@ -13,9 +13,11 @@ export default function Home() {
   const [imageLoaded, setImageLoaded] = useState(false);
   const [scrollProgress, setScrollProgress] = useState(0);
   const [zoomComplete, setZoomComplete] = useState(false);
+  const [isZoomingOut, setIsZoomingOut] = useState(false);
   const [showCaption, setShowCaption] = useState(false);
   const [captionRendered, setCaptionRendered] = useState(false);
   const initialHashTargetRef = useRef<string | null>(null);
+  const previousProgressRef = useRef(0);
 
   // --- CONFIG ------------------------------------------------------------
   const MIN_ZOOM = 1;
@@ -49,7 +51,7 @@ export default function Home() {
       x: 55.8,
       y: 7,
       caption:
-        'the "Zendo", or meditation hall, at Bodhi Mandala Zen Center, Jemez Springs, New Mexico. I lived at the monastery meditating, carrying out daily work, and assisting with retreats.',
+        'The "Zendo", or meditation hall, at Bodhi Mandala Zen Center, Jemez Springs, New Mexico. I lived at the monastery meditating, carrying out daily work, and assisting with retreats.',
     },
     I: {
       x: 68.3,
@@ -80,6 +82,11 @@ export default function Home() {
   const randomTargetRef = useRef(randomTarget);
   const wasZoomedInRef = useRef(false);
   const homeCenterRef = useRef<{ x: number; y: number } | null>(null);
+  const scrollHintText = zoomComplete
+    ? "Scroll to content"
+    : isZoomingOut
+      ? "Scroll to zoom out"
+      : "Scroll to zoom";
 
   useEffect(() => {
     randomTargetRef.current = randomTarget;
@@ -336,6 +343,10 @@ export default function Home() {
         newZoomComplete = true;
       }
 
+      const previousProgress = previousProgressRef.current;
+      setIsZoomingOut(newProgress < previousProgress - 0.001);
+      previousProgressRef.current = newProgress;
+
       setScrollProgress(newProgress);
       applyViewerFromProgress(newProgress);
 
@@ -451,6 +462,31 @@ export default function Home() {
               MozOsxFontSmoothing: "grayscale",
             }}
           />
+          {imageLoaded && (
+            <div
+              style={{
+                position: "absolute",
+                top: "2rem",
+                left: "2rem",
+                padding: "0.6rem 1rem",
+                backgroundColor: "rgba(26, 26, 24, 0.88)",
+                color: "#ece7c1",
+                borderRadius: "8px",
+                fontSize: "0.85rem",
+                lineHeight: "1.2",
+                letterSpacing: "0.08em",
+                zIndex: 10,
+                pointerEvents: "none",
+                backdropFilter: "blur(4px)",
+              }}
+            > 
+              {scrollHintText}
+                <span className="text-lg px-2 inline-block animate-bounce ">
+                  ↓ 
+                </span>
+              
+            </div>
+          )}
           {captionRendered && (
             <div
               className="caption"
