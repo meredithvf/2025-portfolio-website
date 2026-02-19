@@ -264,8 +264,8 @@ export default function Home() {
     if (!hash) return;
 
     const targetId = hash.replace("#", "");
-    const validTargets = new Set(["work", "intro"]);
-    if (!validTargets.has(targetId)) return;
+    const isProjectTarget = targetId.startsWith("project-");
+    if (targetId !== "work" && targetId !== "intro" && !isProjectTarget) return;
 
     // Store the hash target so scroll handler knows not to hide scrollbar
     initialHashTargetRef.current = targetId;
@@ -293,7 +293,9 @@ export default function Home() {
             if (el) {
               el.scrollIntoView({
                 behavior: "instant",
-                block: "start",
+                // Keep project hash restores in visual context so the section
+                // header and preceding cards are not pushed completely offscreen.
+                block: isProjectTarget ? "center" : "start",
               } as ScrollIntoViewOptions);
             }
           };

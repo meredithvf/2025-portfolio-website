@@ -18,6 +18,7 @@ export default async function ProjectDetailPage({
 }: ProjectDetailPageProps) {
   const { slug } = await params;
   const project = projects.find((p) => p.slug === slug);
+  const backHref = `/#project-${slug}`;
 
   if (!project) {
     notFound();
@@ -28,6 +29,7 @@ export default async function ProjectDetailPage({
       <ProjectLayout
         title={project.title}
         category={project.category}
+        backHref={backHref}
         overviewText={
           <>
             I worked on the design system team at Lucid Software from 2022-2025,
@@ -96,6 +98,7 @@ export default async function ProjectDetailPage({
       <ProjectLayout
         title={project.title}
         category={project.category}
+        backHref={backHref}
         overviewText={
           <>
             I created this app with my brother in 2023/2024 in order to solve
@@ -160,6 +163,7 @@ export default async function ProjectDetailPage({
       <ProjectLayout
         title={project.title}
         category={project.category}
+        backHref={backHref}
         overviewText="Sava was a dating safety app I built with a team as part of BYU's Sandbox startup accelerator program. We created it to help people feel safer and more comfortable on dates, especially when meeting someone new. The app provides automated exit strategies—like pre-scheduled texts or calls—that give users a socially acceptable way to leave uncomfortable situations without having to explain themselves."
         overviewMedia={{
           type: "video",
@@ -225,6 +229,7 @@ export default async function ProjectDetailPage({
       <ProjectLayout
         title={project.title}
         category={project.category}
+        backHref={backHref}
         overviewText="I worked in the BYU Human Computer Interaction Lab from 2019-2021. I was initially drawn to this lab because I was interested in the relationship between technology and the outdoors. Among other projects, I got to spend lots of time researching this topic and in the CHI 2021 proceedings I published &ldquo;Outside Where? A Survey of Climates and Built Environments in Studies of HCI outdoors.&rdquo;"
         technologies={["Python", "R"]}
         websiteUrl="https://dl.acm.org/doi/fullHtml/10.1145/3491102.3507656"
@@ -243,7 +248,7 @@ export default async function ProjectDetailPage({
   // Default template for other projects
   return (
     <>
-      <ProjectHeader title={project.title} />
+      <ProjectHeader title={project.title} backHref={backHref} />
       <div className="min-h-screen pb-20 px-6">
         <div className="max-w-4xl mx-auto">
           <div className="mb-8">

@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
 import type { Project } from "@/types/project";
 import { lightenColor } from "@/utils/colorUtils";
 import {
@@ -17,12 +16,14 @@ interface ProjectSlideProps {
   project: Project;
   index: number;
   previousColor?: string;
+  anchorId?: string;
 }
 
 export default function ProjectSlide({
   project,
   index,
   previousColor,
+  anchorId,
 }: ProjectSlideProps) {
   const slideRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -204,6 +205,7 @@ export default function ProjectSlide({
 
       {/* Content */}
       <div
+        id={anchorId}
         className="relative z-10 min-h-screen flex items-center justify-center py-20"
         style={{
           opacity: contentOpacity,
@@ -212,8 +214,8 @@ export default function ProjectSlide({
       >
         <div className="group inline-flex flex-col items-center text-center">
           {/* Media */}
-          <Link
-            href={`/work/${project.slug}`}
+          <a
+            href={`/work/${project.slug}#project-${project.slug}`}
             className="mb-6"
             aria-label={`View ${project.title} project`}
           >
@@ -246,39 +248,48 @@ export default function ProjectSlide({
                 />
               )}
             </div>
-          </Link>
+          </a>
 
           {/* Text Content */}
           <div className="flex flex-col items-center">
-            <Link href={`/work/${project.slug}`} className="mb-2">
+            <a
+              href={`/work/${project.slug}#project-${project.slug}`}
+              className="mb-2"
+            >
               <p className="text-sm uppercase tracking-[0.2em] text-slate-600">
                 {project.category}
               </p>
-            </Link>
+            </a>
 
-            <Link href={`/work/${project.slug}`} className="mb-3">
+            <a
+              href={`/work/${project.slug}#project-${project.slug}`}
+              className="mb-3"
+            >
               <h3 className="display-heading text-3xl md:text-4xl text-slate-800 transition-transform duration-300 group-hover:scale-110 origin-center">
                 {project.title}
               </h3>
-            </Link>
+            </a>
 
             {project.description && (
-              <Link href={`/work/${project.slug}`} className="mb-6">
+              <a
+                href={`/work/${project.slug}#project-${project.slug}`}
+                className="mb-6"
+              >
                 <p className="text-slate-600 text-sm leading-relaxed max-w-sm">
                   {project.description}
                 </p>
-              </Link>
+              </a>
             )}
 
-            <Link
-              href={`/work/${project.slug}`}
+            <a
+              href={`/work/${project.slug}#project-${project.slug}`}
               className="inline-flex items-center gap-3 text-xl text-slate-800 group-hover:scale-110 transition-colors"
             >
               <span>View Project</span>
               <span className="group-hover:translate-x-2 transition-transform">
                 →
               </span>
-            </Link>
+            </a>
           </div>
         </div>
       </div>

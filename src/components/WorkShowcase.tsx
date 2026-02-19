@@ -62,6 +62,7 @@ export default function WorkShowcase({ projects }: WorkShowcaseProps) {
       {projects.map((project, index) => (
         <ProjectSlide
           key={project.id}
+          anchorId={`project-${project.slug}`}
           project={project}
           index={index}
           previousColor={index > 0 ? projects[index - 1].sunColor : "#ece7c1"}

@@ -26,6 +26,7 @@ interface NewsAndAwardsItem {
 interface ProjectLayoutProps {
   title: string;
   category: string;
+  backHref?: string;
   overviewText: string | React.ReactNode;
   overviewMedia?: {
     type: "video" | "image";
@@ -44,6 +45,7 @@ interface ProjectLayoutProps {
 export default function ProjectLayout({
   title,
   category,
+  backHref = "/#work",
   overviewText,
   overviewMedia,
   overviewDescription,
@@ -90,7 +92,7 @@ export default function ProjectLayout({
       <div className="hidden lg:block fixed top-1/2 left-8 -translate-y-1/2 z-50">
         <div className="sideways-lr flex flex-row items-center justify-center gap-x-40">
           <a
-            href="/#work"
+            href={backHref}
             className="text-foreground/40 hover:text-foreground transition-colors duration-300 text-sm tracking-wider"
           >
             Work
@@ -121,7 +123,7 @@ export default function ProjectLayout({
         </div>
       </div>
 
-      <ProjectHeader title={title} />
+      <ProjectHeader title={title} backHref={backHref} />
 
       <div className="min-h-screen pb-20 px-6 md:px-12 lg:mx-20">
         <div className="max-w-6xl mx-auto">
@@ -330,10 +332,6 @@ export default function ProjectLayout({
           )}
 
           {/* Back to Work Link */}
-          <div
-            ref={addToRefs}
-            className="animate-on-scroll pt-12 border-t border-foreground/10"
-          >
             <a
               href="/#work"
               className="group inline-flex items-center gap-3 text-foreground/60 hover:text-foreground transition-colors duration-300"
@@ -345,7 +343,6 @@ export default function ProjectLayout({
             </a>
           </div>
         </div>
-      </div>
     </>
   );
 }
