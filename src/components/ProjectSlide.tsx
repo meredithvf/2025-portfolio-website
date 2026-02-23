@@ -213,13 +213,12 @@ export default function ProjectSlide({
           transform: `translateY(${contentY}px)`,
         }}
       >
-        <div className="group inline-flex flex-col items-center text-center">
+        <a
+          href={`/work/${project.slug}#project-${project.slug}`}
+          className="group inline-flex flex-col items-center text-center"
+        >
           {/* Media */}
-          <a
-            href={`/work/${project.slug}#project-${project.slug}`}
-            className="mb-6"
-            aria-label={`View ${project.title} project`}
-          >
+          <div className="mb-6" aria-label={`View ${project.title} project`}>
             <div
               className={`relative overflow-hidden rounded-lg shadow-xl bg-black/10 ${
                 isByuLogoImage
@@ -245,60 +244,42 @@ export default function ProjectSlide({
                     w-full h-full object-cover
                     transition-transform duration-500
                     group-hover:scale-105
-                    ${
-                      isByuLogoImage
-                        ? "object-contain bg-white p-10 md:p-12"
-                        : ""
-                    }
+                    ${isByuLogoImage ? "object-contain bg-white p-0 md:p-5" : ""}
                   `}
                   loading="lazy"
                 />
               )}
             </div>
-          </a>
+          </div>
 
           {/* Text Content */}
           <div className="flex flex-col items-center">
-            <a
-              href={`/work/${project.slug}#project-${project.slug}`}
-              className="mb-2"
-            >
-              <p className="text-sm uppercase tracking-[0.2em] text-slate-600">
-                {project.category}
-              </p>
-            </a>
+            <p className="text-sm uppercase tracking-[0.2em] text-slate-600">
+              {project.category}
+            </p>
 
-            <a
-              href={`/work/${project.slug}#project-${project.slug}`}
-              className="mb-3"
-            >
+            <div className="mb-3">
               <h3 className="display-heading text-3xl md:text-4xl text-slate-800 transition-transform duration-300 group-hover:scale-110 origin-center">
                 {project.title}
               </h3>
-            </a>
+            </div>
 
             {project.description && (
-              <a
-                href={`/work/${project.slug}#project-${project.slug}`}
-                className="mb-6"
-              >
+              <div className="mb-6">
                 <p className="text-slate-600 text-sm leading-relaxed max-w-sm">
                   {project.description}
                 </p>
-              </a>
+              </div>
             )}
 
-            <a
-              href={`/work/${project.slug}#project-${project.slug}`}
-              className="inline-flex items-center gap-3 text-xl text-slate-800 group-hover:scale-110 transition-colors"
-            >
+            <div className="inline-flex items-center gap-3 text-xl text-slate-800 group-hover:scale-110 transition-colors link-underline">
               <span>See More</span>
               <span className="group-hover:translate-x-2 transition-transform">
                 →
               </span>
-            </a>
+            </div>
           </div>
-        </div>
+        </a>
       </div>
     </div>
   );
