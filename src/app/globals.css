@@ -178,6 +178,17 @@ body.show-scrollbar::-webkit-scrollbar-thumb:hover {
   animation: none !important;
 }
 
+/* Prevent one-frame sun jump when restoring to /#project-* anchors */
+.suppress-project-slide-sun .project-slide-sun {
+  opacity: 0 !important;
+}
+
+/* Freeze project slide motion until first user interaction after restore */
+.suppress-project-slide-sun .project-slide-content {
+  opacity: 1 !important;
+  transform: none !important;
+}
+
 .animate-fade-in.is-visible {
   animation: fade-in 1s ease-out forwards;
 }

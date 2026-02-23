@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useLayoutEffect, useRef, useState, type MouseEvent } from "react";
 import type { Project } from "@/types/project";
 import { lightenColor } from "@/utils/colorUtils";
 import {
@@ -27,47 +27,73 @@ export default function ProjectSlide({
 }: ProjectSlideProps) {
   const slideRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const hasMeasuredInitialProgressRef = useRef(false);
   const [scrollProgress, setScrollProgress] = useState(0);
+  const [isInitialStateReady, setIsInitialStateReady] = useState(false);
 
-  useEffect(() => {
+  const handleProjectClick = (event: MouseEvent<HTMLAnchorElement>) => {
+    const isModifiedClick =
+      event.metaKey || event.ctrlKey || event.shiftKey || event.altKey;
+    const isNonPrimaryButton = event.button !== 0;
+    if (isModifiedClick || isNonPrimaryButton) return;
+
+    event.preventDefault();
+
+    const restoreUrl = `/?project=${project.slug}`;
+    window.history.replaceState(window.history.state, "", restoreUrl);
+    window.location.assign(`/work/${project.slug}`);
+  };
+
+  useLayoutEffect(() => {
     let ticking = false;
+    let frameId = 0;
+
+    const syncProgress = () => {
+      if (!slideRef.current) return;
+
+      const rect = slideRef.current.getBoundingClientRect();
+      const windowHeight = window.innerHeight;
+      const slideHeight = rect.height;
+
+      const totalScrollDistance = slideHeight + windowHeight;
+      const scrolled = windowHeight - rect.top;
+      const progress = clamp(scrolled / totalScrollDistance, 0, 1);
+
+      setScrollProgress(progress);
+      if (!hasMeasuredInitialProgressRef.current) {
+        hasMeasuredInitialProgressRef.current = true;
+        setIsInitialStateReady(true);
+      }
+
+      if (videoRef.current) {
+        if (progress > 0.15 && progress < 0.7) {
+          videoRef.current.play().catch(() => {});
+        } else {
+          videoRef.current.pause();
+        }
+      }
+    };
 
     const handleScroll = () => {
       if (ticking) return;
 
       ticking = true;
-      requestAnimationFrame(() => {
-        if (!slideRef.current) {
-          ticking = false;
-          return;
-        }
-
-        const rect = slideRef.current.getBoundingClientRect();
-        const windowHeight = window.innerHeight;
-        const slideHeight = rect.height;
-
-        const totalScrollDistance = slideHeight + windowHeight;
-        const scrolled = windowHeight - rect.top;
-        const progress = clamp(scrolled / totalScrollDistance, 0, 1);
-
-        setScrollProgress(progress);
-
-        if (videoRef.current) {
-          if (progress > 0.15 && progress < 0.7) {
-            videoRef.current.play().catch(() => {});
-          } else {
-            videoRef.current.pause();
-          }
-        }
-
+      frameId = requestAnimationFrame(() => {
+        syncProgress();
         ticking = false;
       });
     };
 
+    // Measure immediately before first paint to avoid one-frame jump.
+    syncProgress();
     window.addEventListener("scroll", handleScroll, { passive: true });
-    handleScroll();
+    window.addEventListener("resize", handleScroll, { passive: true });
 
-    return () => window.removeEventListener("scroll", handleScroll);
+    return () => {
+      if (frameId) cancelAnimationFrame(frameId);
+      window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("resize", handleScroll);
+    };
   }, []);
 
   const media = project.showcaseMedia || {
@@ -107,17 +133,20 @@ export default function ProjectSlide({
       ref={slideRef}
       className="relative"
       style={{
-        minHeight: "125vh",
+        minHeight: "150vh",
         backgroundColor: bgColor,
-        marginTop: index > 0 ? "-30vh" : 0,
+        marginTop: index > 0 ? "-40vh" : 0,
         zIndex: index + 1,
       }}
     >
       {/* The Sun */}
       <div
-        className="absolute inset-0 pointer-events-none"
+        className="project-slide-sun absolute inset-0 pointer-events-none"
         aria-hidden="true"
-        style={{ zIndex: 5 }}
+        style={{
+          zIndex: 5,
+          opacity: isInitialStateReady ? 1 : 0,
+        }}
       >
         {/* Main sun body */}
         <div
@@ -207,14 +236,15 @@ export default function ProjectSlide({
       {/* Content */}
       <div
         id={anchorId}
-        className="relative z-10 min-h-screen flex items-center justify-center py-20"
+        className="project-slide-content relative z-10 min-h-screen flex items-center justify-center py-20"
         style={{
-          opacity: contentOpacity,
-          transform: `translateY(${contentY}px)`,
+          opacity: isInitialStateReady ? contentOpacity : 1,
+          transform: isInitialStateReady ? `translateY(${contentY}px)` : "none",
         }}
       >
         <a
-          href={`/work/${project.slug}#project-${project.slug}`}
+          href={`/work/${project.slug}`}
+          onClick={handleProjectClick}
           className="group inline-flex flex-col items-center text-center"
         >
           {/* Media */}

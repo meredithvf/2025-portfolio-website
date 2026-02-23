@@ -18,7 +18,7 @@ export default async function ProjectDetailPage({
 }: ProjectDetailPageProps) {
   const { slug } = await params;
   const project = projects.find((p) => p.slug === slug);
-  const backHref = `/#project-${slug}`;
+  const backHref = `/?project=${slug}`;
 
   if (!project) {
     notFound();

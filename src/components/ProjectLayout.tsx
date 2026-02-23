@@ -45,7 +45,7 @@ interface ProjectLayoutProps {
 export default function ProjectLayout({
   title,
   category,
-  backHref = "/#work",
+  backHref,
   overviewText,
   overviewMedia,
   overviewDescription,
@@ -70,7 +70,7 @@ export default function ProjectLayout({
       {
         threshold: 0.1,
         rootMargin: "0px 0px -50px 0px",
-      }
+      },
     );
 
     elementsRef.current.forEach((el) => {
@@ -92,7 +92,7 @@ export default function ProjectLayout({
       <div className="hidden lg:block fixed top-1/2 left-8 -translate-y-1/2 z-50">
         <div className="sideways-lr flex flex-row items-center justify-center gap-x-40">
           <a
-            href={backHref}
+            href="/#work"
             className="text-foreground/40 hover:text-foreground transition-colors duration-300 text-sm tracking-wider"
           >
             Work
@@ -332,17 +332,17 @@ export default function ProjectLayout({
           )}
 
           {/* Back to Work Link */}
-            <a
-              href="/#work"
-              className="group inline-flex items-center gap-3 text-foreground/60 hover:text-foreground transition-colors duration-300"
-            >
-              <span className="group-hover:-translate-x-2 transition-transform duration-300">
-                ←
-              </span>
-              <span className="text-lg">Back to all work</span>
-            </a>
-          </div>
+          <a
+            href="/#work"
+            className="group inline-flex items-center gap-3 text-foreground/60 hover:text-foreground transition-colors duration-300"
+          >
+            <span className="group-hover:-translate-x-2 transition-transform duration-300">
+              ←
+            </span>
+            <span className="text-lg">Back to all work</span>
+          </a>
         </div>
+      </div>
     </>
   );
 }

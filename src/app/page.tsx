@@ -329,6 +329,97 @@ export default function Home() {
     };
   }, []);
 
+  // Handle controlled project restores via query token (/?project=<slug>)
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const projectSlug = params.get("project");
+    if (!projectSlug) return;
+
+    const targetId = `project-${projectSlug}`;
+    initialHashTargetRef.current = targetId;
+
+    document.documentElement.classList.add("show-scrollbar");
+    document.body.classList.add("show-scrollbar");
+    document.body.classList.add("skip-intro-animations");
+    document.body.classList.add("suppress-project-slide-sun");
+
+    const releaseProjectSunSuppression = () => {
+      document.body.classList.remove("suppress-project-slide-sun");
+    };
+
+    const clearProjectQueryToken = () => {
+      const nextUrl = new URL(window.location.href);
+      nextUrl.searchParams.delete("project");
+      const nextPath = `${nextUrl.pathname}${nextUrl.search}${nextUrl.hash}`;
+      window.history.replaceState(window.history.state, "", nextPath || "/");
+    };
+
+    const alignToTarget = () => {
+      const el = document.getElementById(targetId);
+      if (!el) return;
+      el.scrollIntoView({
+        behavior: "instant",
+        block: "center",
+      } as ScrollIntoViewOptions);
+    };
+
+    const scrollToTarget = () => {
+      // Enter the same layout phase users naturally reach after scrolling down.
+      // This preserves the "fully zoomed image appears first" behavior on upward scroll.
+      setZoomComplete(true);
+      setScrollProgress(1);
+      setShowCaption(true);
+      setCaptionRendered(true);
+      wasZoomedInRef.current = true;
+
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          alignToTarget();
+          requestAnimationFrame(() => {
+            alignToTarget();
+            initialHashTargetRef.current = null;
+            clearProjectQueryToken();
+          });
+        });
+      });
+    };
+
+    const releaseOnFirstInteraction = () => {
+      releaseProjectSunSuppression();
+      window.removeEventListener("wheel", releaseOnFirstInteraction);
+      window.removeEventListener("touchstart", releaseOnFirstInteraction);
+      window.removeEventListener("mousedown", releaseOnFirstInteraction);
+      window.removeEventListener("keydown", releaseOnFirstInteraction);
+    };
+
+    window.addEventListener("wheel", releaseOnFirstInteraction, {
+      once: true,
+      passive: true,
+    });
+    window.addEventListener("touchstart", releaseOnFirstInteraction, {
+      once: true,
+      passive: true,
+    });
+    window.addEventListener("mousedown", releaseOnFirstInteraction, {
+      once: true,
+      passive: true,
+    });
+    window.addEventListener("keydown", releaseOnFirstInteraction, {
+      once: true,
+    });
+
+    const timeoutId = window.setTimeout(scrollToTarget, 0);
+    return () => {
+      window.clearTimeout(timeoutId);
+      releaseProjectSunSuppression();
+      window.removeEventListener("wheel", releaseOnFirstInteraction);
+      window.removeEventListener("touchstart", releaseOnFirstInteraction);
+      window.removeEventListener("mousedown", releaseOnFirstInteraction);
+      window.removeEventListener("keydown", releaseOnFirstInteraction);
+    };
+  }, []);
+
   // If we land on the page with a section hash, handle navigation
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -347,6 +438,13 @@ export default function Home() {
 
     // Skip animations for content when navigating via hash
     document.body.classList.add("skip-intro-animations");
+    const shouldSuppressProjectSun = isProjectTarget;
+    const releaseProjectSunSuppression = () => {
+      document.body.classList.remove("suppress-project-slide-sun");
+    };
+    if (shouldSuppressProjectSun) {
+      document.body.classList.add("suppress-project-slide-sun");
+    }
 
     const scrollToTarget = () => {
       // Enter the same layout phase users naturally reach after scrolling down.
@@ -383,10 +481,41 @@ export default function Home() {
       });
     };
 
+    const releaseOnFirstInteraction = () => {
+      releaseProjectSunSuppression();
+      window.removeEventListener("wheel", releaseOnFirstInteraction);
+      window.removeEventListener("touchstart", releaseOnFirstInteraction);
+      window.removeEventListener("mousedown", releaseOnFirstInteraction);
+      window.removeEventListener("keydown", releaseOnFirstInteraction);
+    };
+
+    if (shouldSuppressProjectSun) {
+      window.addEventListener("wheel", releaseOnFirstInteraction, {
+        once: true,
+        passive: true,
+      });
+      window.addEventListener("touchstart", releaseOnFirstInteraction, {
+        once: true,
+        passive: true,
+      });
+      window.addEventListener("mousedown", releaseOnFirstInteraction, {
+        once: true,
+        passive: true,
+      });
+      window.addEventListener("keydown", releaseOnFirstInteraction, {
+        once: true,
+      });
+    }
+
     // Delay to ensure layout is ready (OpenSeadragon container needs time to initialize)
-    const timeoutId = window.setTimeout(scrollToTarget, 150);
+    const timeoutId = window.setTimeout(scrollToTarget, isProjectTarget ? 0 : 150);
     return () => {
       window.clearTimeout(timeoutId);
+      releaseProjectSunSuppression();
+      window.removeEventListener("wheel", releaseOnFirstInteraction);
+      window.removeEventListener("touchstart", releaseOnFirstInteraction);
+      window.removeEventListener("mousedown", releaseOnFirstInteraction);
+      window.removeEventListener("keydown", releaseOnFirstInteraction);
     };
   }, []);
 
