@@ -1,8 +1,12 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, type KeyboardEvent as ReactKeyboardEvent } from "react";
 
-export default function Intro() {
+type IntroProps = {
+  onWorkReverseTab?: (event: ReactKeyboardEvent<HTMLAnchorElement>) => void;
+};
+
+export default function Intro({ onWorkReverseTab }: IntroProps) {
   const sectionRef = useRef<HTMLElement>(null);
   const elementsRef = useRef<HTMLElement[]>([]);
 
@@ -97,6 +101,7 @@ export default function Intro() {
               >
                 <a
                   href="#work"
+                  onKeyDown={onWorkReverseTab}
                   className="group flex items-center justify-between py-3 border-b border-foreground/30 hover:border-foreground/70 transition-colors duration-300"
                 >
                   <span className="display-heading text-2xl md:text-3xl group-hover:translate-x-2 group-hover:scale-110 transition-transform duration-300">

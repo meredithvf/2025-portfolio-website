@@ -1,6 +1,11 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type KeyboardEvent as ReactKeyboardEvent,
+} from "react";
 import Intro from "@/components/Intro";
 import WorkShowcase from "@/components/WorkShowcase";
 import Footer from "@/components/Footer";
@@ -9,6 +14,7 @@ import { projects } from "@/data/projects";
 export default function Home() {
   const viewerRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const scrollHintButtonRef = useRef<HTMLButtonElement>(null);
   const viewerInstanceRef = useRef<any>(null);
   const [imageLoaded, setImageLoaded] = useState(false);
   const [scrollProgress, setScrollProgress] = useState(0);
@@ -122,6 +128,41 @@ export default function Home() {
     window.scrollTo({
       top: zoomPhaseHeight,
       behavior: "smooth",
+    });
+  };
+
+  const handleScrollHintKeyDown = (
+    event: ReactKeyboardEvent<HTMLButtonElement>,
+  ) => {
+    if (!zoomComplete) return;
+    if (!(event.key === "Tab" && event.shiftKey)) return;
+
+    event.preventDefault();
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+  };
+
+  const handleWorkReverseTab = (
+    event: ReactKeyboardEvent<HTMLAnchorElement>,
+  ) => {
+    if (!(event.key === "Tab" && event.shiftKey)) return;
+    if (typeof window === "undefined") return;
+
+    event.preventDefault();
+    const zoomPhaseHeight = window.innerHeight * 3;
+    window.scrollTo({
+      top: zoomPhaseHeight,
+      behavior: "auto",
+    });
+
+    requestAnimationFrame(() => {
+      window.scrollTo({
+        top: zoomPhaseHeight,
+        behavior: "auto",
+      });
+      scrollHintButtonRef.current?.focus();
     });
   };
 
@@ -459,24 +500,6 @@ export default function Home() {
     };
   }, []);
 
-  useEffect(() => {
-    const handleShiftTabZoomOut = (event: KeyboardEvent) => {
-      if (!zoomComplete) return;
-      if (!(event.key === "Tab" && event.shiftKey)) return;
-
-      event.preventDefault();
-      window.scrollTo({
-        top: 0,
-        behavior: "smooth",
-      });
-    };
-
-    window.addEventListener("keydown", handleShiftTabZoomOut);
-    return () => {
-      window.removeEventListener("keydown", handleShiftTabZoomOut);
-    };
-  }, [zoomComplete]);
-
   return (
     <div className="relative">
       <>
@@ -516,8 +539,10 @@ export default function Home() {
           />
           {imageLoaded && (
             <button
+              ref={scrollHintButtonRef}
               type="button"
               onClick={jumpToZoomedPhoto}
+              onKeyDown={handleScrollHintKeyDown}
               aria-label={zoomComplete ? "Jump to intro content" : "Jump to zoomed photo"}
               style={{
                 position: "absolute",
@@ -587,7 +612,7 @@ export default function Home() {
         className="relative bg-background"
         style={{ zIndex: 1 }}
       >
-        <Intro />
+        <Intro onWorkReverseTab={handleWorkReverseTab} />
         <WorkShowcase projects={projects} />
         <Footer />
       </main>
