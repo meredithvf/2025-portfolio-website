@@ -50,26 +50,6 @@ body::-webkit-scrollbar {
   display: none; /* Chrome, Safari, Opera */
 }
 
-.skip-link {
-  position: absolute;
-  left: -1rem;
-  top: -9999px;
-  z-index: 1000;
-  padding: 0.6rem 0.9rem;
-  border-radius: 0.25rem;
-  background: #1a1a18;
-  color: #ece7c1;
-  font-size: 0.875rem;
-  text-decoration: none;
-}
-
-/* Show scrollbar when zoom is complete (for below-the-fold content) */
-html.show-scrollbar,
-body.show-scrollbar {
-  scrollbar-width: thin; /* Firefox */
-  -ms-overflow-style: auto; /* IE and Edge */
-}
-
 html.show-scrollbar::-webkit-scrollbar,
 body.show-scrollbar::-webkit-scrollbar {
   display: block; /* Chrome, Safari, Opera */
