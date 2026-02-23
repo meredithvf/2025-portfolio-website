@@ -82,11 +82,14 @@ export default function Home() {
   const randomTargetRef = useRef(randomTarget);
   const wasZoomedInRef = useRef(false);
   const homeCenterRef = useRef<{ x: number; y: number } | null>(null);
+  const isFullyZoomedOut = scrollProgress <= 0.001;
+  const showZoomOutHint = isZoomingOut && !isFullyZoomedOut;
   const scrollHintText = zoomComplete
     ? "Scroll to content"
-    : isZoomingOut
+    : showZoomOutHint
       ? "Scroll to zoom out"
       : "Scroll to zoom";
+  const scrollHintArrow = zoomComplete ? "↓" : showZoomOutHint ? "↑" : "↓";
 
   useEffect(() => {
     randomTargetRef.current = randomTarget;
@@ -99,6 +102,27 @@ export default function Home() {
     const nextTarget = TARGETS[randomKey];
     randomTargetRef.current = nextTarget;
     setRandomTarget(nextTarget);
+  };
+
+  const jumpToZoomedPhoto = () => {
+    if (typeof window === "undefined") return;
+    if (zoomComplete) {
+      const introSection = document.getElementById("intro");
+      if (introSection) {
+        window.history.pushState(null, "", "#intro");
+        introSection.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+      }
+      return;
+    }
+
+    const zoomPhaseHeight = window.innerHeight * 3;
+    window.scrollTo({
+      top: zoomPhaseHeight,
+      behavior: "smooth",
+    });
   };
 
   const applyViewerFromProgress = (progress: number) => {
@@ -135,7 +159,7 @@ export default function Home() {
 
     return () => {
       const existingLink = document.querySelector(
-        'link[href*="openseadragon.min.css"]'
+        'link[href*="openseadragon.min.css"]',
       );
       if (existingLink) {
         existingLink.remove();
@@ -222,7 +246,7 @@ export default function Home() {
             const panProgress = 1 - Math.pow(1 - initialProgress, 2.5);
             const initialCenter = new OpenSeadragon.Point(
               homeCenter.x + panProgress * (targetCenter.x - homeCenter.x),
-              homeCenter.y + panProgress * (targetCenter.y - homeCenter.y)
+              homeCenter.y + panProgress * (targetCenter.y - homeCenter.y),
             );
 
             viewer.viewport.panTo(initialCenter, true);
@@ -344,7 +368,17 @@ export default function Home() {
       }
 
       const previousProgress = previousProgressRef.current;
-      setIsZoomingOut(newProgress < previousProgress - 0.001);
+      const DIRECTION_EPSILON = 0.001;
+      setIsZoomingOut((prevIsZoomingOut) => {
+        if (newProgress < previousProgress - DIRECTION_EPSILON) {
+          return true;
+        }
+        if (newProgress > previousProgress + DIRECTION_EPSILON) {
+          return false;
+        }
+        // Keep previous direction during brief pauses or tiny jitter.
+        return prevIsZoomingOut;
+      });
       previousProgressRef.current = newProgress;
 
       setScrollProgress(newProgress);
@@ -408,7 +442,7 @@ export default function Home() {
     window.addEventListener("pageshow", handlePageShow);
     window.addEventListener("popstate", forceResyncAfterHistoryRestore);
     document.addEventListener("visibilitychange", handleVisibilityChange);
-    
+
     // Only run initial handleScroll if not doing hash navigation
     // (hash navigation will trigger a scroll event which will call handleScroll)
     if (!initialHashTargetRef.current) {
@@ -424,6 +458,24 @@ export default function Home() {
       document.body.classList.remove("show-scrollbar");
     };
   }, []);
+
+  useEffect(() => {
+    const handleShiftTabZoomOut = (event: KeyboardEvent) => {
+      if (!zoomComplete) return;
+      if (!(event.key === "Tab" && event.shiftKey)) return;
+
+      event.preventDefault();
+      window.scrollTo({
+        top: 0,
+        behavior: "smooth",
+      });
+    };
+
+    window.addEventListener("keydown", handleShiftTabZoomOut);
+    return () => {
+      window.removeEventListener("keydown", handleShiftTabZoomOut);
+    };
+  }, [zoomComplete]);
 
   return (
     <div className="relative">
@@ -463,7 +515,10 @@ export default function Home() {
             }}
           />
           {imageLoaded && (
-            <div
+            <button
+              type="button"
+              onClick={jumpToZoomedPhoto}
+              aria-label={zoomComplete ? "Jump to intro content" : "Jump to zoomed photo"}
               style={{
                 position: "absolute",
                 top: "2rem",
@@ -476,16 +531,15 @@ export default function Home() {
                 lineHeight: "1.2",
                 letterSpacing: "0.08em",
                 zIndex: 10,
-                pointerEvents: "none",
+                cursor: "pointer",
                 backdropFilter: "blur(4px)",
               }}
-            > 
+            >
               {scrollHintText}
-                <span className="text-lg px-2 inline-block animate-bounce ">
-                  ↓ 
-                </span>
-              
-            </div>
+              <span className="text-lg px-2 inline-block ">
+                {scrollHintArrow}
+              </span>
+            </button>
           )}
           {captionRendered && (
             <div

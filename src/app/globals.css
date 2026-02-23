@@ -52,7 +52,7 @@ body::-webkit-scrollbar {
 
 .skip-link {
   position: absolute;
-  left: 1rem;
+  left: -1rem;
   top: -9999px;
   z-index: 1000;
   padding: 0.6rem 0.9rem;
@@ -61,20 +61,6 @@ body::-webkit-scrollbar {
   color: #ece7c1;
   font-size: 0.875rem;
   text-decoration: none;
-}
-
-.skip-link:focus-visible {
-  top: 1rem;
-  outline: 2px solid #ece7c1;
-  outline-offset: 2px;
-}
-
-a:focus-visible,
-button:focus-visible {
-  outline: 2px solid #1a1a18;
-  outline-offset: 2px;
-  border-radius: 2px;
-  box-shadow: 0 0 0 4px rgba(236, 231, 193, 0.9);
 }
 
 /* Show scrollbar when zoom is complete (for below-the-fold content) */
@@ -388,7 +374,8 @@ video {
 
 /* Hover lift effect */
 .hover-lift {
-  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1),
+  transition:
+    transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1),
     box-shadow 0.4s ease;
 }
 

@@ -21,7 +21,8 @@ const playfair = Playfair_Display({
 
 export const metadata: Metadata = {
   title: "Meredith Sunshine Von Feldt",
-  description: "Portfolio of Meredith Sunshine Von Feldt - Software Engineer creating beautiful, functional, and accessible digital experiences.",
+  description:
+    "Portfolio of Meredith Sunshine Von Feldt - Software Engineer creating beautiful, functional, and accessible digital experiences.",
 };
 
 export default function RootLayout({
@@ -34,9 +35,9 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${playfair.variable} antialiased`}
       >
-        <a href="#intro" className="skip-link">
+        {/* <a href="#intro" className="skip-link">
           Skip to main content
-        </a>
+        </a> */}
         {children}
       </body>
     </html>
