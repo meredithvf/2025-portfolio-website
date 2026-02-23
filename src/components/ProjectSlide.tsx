@@ -75,6 +75,7 @@ export default function ProjectSlide({
     src: project.thumbnail,
   };
   const isVideo = media.type === "video";
+  const isByuLogoImage = !isVideo && media.src.includes("byu-logo");
 
   // Colors
   const sunColor = project.sunColor || "#E8D5A3";
@@ -219,7 +220,13 @@ export default function ProjectSlide({
             className="mb-6"
             aria-label={`View ${project.title} project`}
           >
-            <div className="relative overflow-hidden rounded-lg aspect-[16/10] shadow-xl bg-black/10 w-80 md:w-96">
+            <div
+              className={`relative overflow-hidden rounded-lg shadow-xl bg-black/10 ${
+                isByuLogoImage
+                  ? "w-64 md:w-72 aspect-square"
+                  : "w-80 md:w-96 aspect-[16/10]"
+              }`}
+            >
               {isVideo ? (
                 <video
                   ref={videoRef}
@@ -239,8 +246,8 @@ export default function ProjectSlide({
                     transition-transform duration-500
                     group-hover:scale-105
                     ${
-                      media.src.includes("byu-logo")
-                        ? "object-contain bg-white p-8"
+                      isByuLogoImage
+                        ? "object-contain bg-white p-10 md:p-12"
                         : ""
                     }
                   `}
