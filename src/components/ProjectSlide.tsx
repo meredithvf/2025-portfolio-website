@@ -107,9 +107,9 @@ export default function ProjectSlide({
       ref={slideRef}
       className="relative"
       style={{
-        minHeight: "150vh",
+        minHeight: "125vh",
         backgroundColor: bgColor,
-        marginTop: index > 0 ? "-20vh" : 0,
+        marginTop: index > 0 ? "-30vh" : 0,
         zIndex: index + 1,
       }}
     >
