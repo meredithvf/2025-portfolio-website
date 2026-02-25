@@ -28,13 +28,14 @@ export default function ProjectHeader({
         Math.min(1, -rect.top / sectionHeight),
       );
 
-      // Scale from 0.15 (very small) to 1.0 (full size) as you scroll
+      // Keep title scaling consistent across breakpoints.
       // Use easing for smoother animation
       const easedProgress = scrollProgress * scrollProgress; // Ease out
       const newScale = 0.3 + easedProgress * 0.85;
       setScale(newScale);
     };
 
+    handleScroll();
     window.addEventListener("scroll", handleScroll, { passive: true });
     window.addEventListener("resize", handleScroll, { passive: true });
     return () => {
@@ -46,7 +47,7 @@ export default function ProjectHeader({
   return (
     <section
       ref={sectionRef}
-      className="relative h-[85vh] flex items-center justify-center mx-4 md:mx-12 lg:mx-20 my-6 md:my-10 bg-foreground rounded-sm overflow-hidden"
+      className="relative h-[65vh] md:h-[85vh] flex items-center justify-center mx-4 md:mx-12 lg:mx-20 my-6 md:my-10 bg-foreground rounded-sm overflow-hidden"
     >
       {/* Subtle gradient overlay */}
       <div
@@ -60,13 +61,47 @@ export default function ProjectHeader({
       {/* Back link */}
       <a
         href={backHref}
-        className="absolute top-6 left-6 md:top-8 md:left-8 text-background/60 hover:text-background transition-all duration-500 flex items-center gap-2 text-sm opacity-100 translate-y-0"
+        className="absolute top-6 left-6 md:top-8 md:left-8 text-background/60 hover:text-background transition-all duration-500 flex items-center gap-5 text-sm opacity-100 translate-y-0"
       >
         <span className="hover:-translate-x-1 transition-transform duration-300">
           ←
         </span>
         <span>Back</span>
       </a>
+
+      {/* Quick actions */}
+      <nav
+        aria-label="Project quick actions"
+        className="absolute bottom-4 left-4 right-4 md:hidden"
+      >
+        <div className="flex flex-wrap justify-center gap-x-6 gap-y-1 text-s tracking-wider uppercase text-background/55">
+          <a
+            href="/resume.pdf"
+            download="meredith-von-feldt-resume.pdf"
+            className="hover:text-background transition-colors duration-300"
+          >
+            Resume
+          </a>
+          <a
+            href="mailto:meredithvf@gmail.com"
+            className="hover:text-background transition-colors duration-300"
+          >
+            Email
+          </a>
+          <a
+            href="/#intro"
+            className="hover:text-background transition-colors duration-300"
+          >
+            Home
+          </a>
+          <a
+            href="/#work"
+            className="hover:text-background transition-colors duration-300"
+          >
+            Work
+          </a>
+        </div>
+      </nav>
 
       {/* Title */}
       <h1

@@ -65,6 +65,7 @@ export default function WorkShowcase({ projects }: WorkShowcaseProps) {
           anchorId={`project-${project.slug}`}
           project={project}
           index={index}
+          isLast={index === projects.length - 1}
           previousColor={index > 0 ? projects[index - 1].sunColor : "#ece7c1"}
         />
       ))}

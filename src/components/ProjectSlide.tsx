@@ -17,6 +17,7 @@ interface ProjectSlideProps {
   index: number;
   previousColor?: string;
   anchorId?: string;
+  isLast?: boolean;
 }
 
 export default function ProjectSlide({
@@ -24,12 +25,14 @@ export default function ProjectSlide({
   index,
   previousColor,
   anchorId,
+  isLast = false,
 }: ProjectSlideProps) {
   const slideRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const hasMeasuredInitialProgressRef = useRef(false);
   const [scrollProgress, setScrollProgress] = useState(0);
   const [isInitialStateReady, setIsInitialStateReady] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
   const handleProjectClick = (event: MouseEvent<HTMLAnchorElement>) => {
     const isModifiedClick =
@@ -54,6 +57,7 @@ export default function ProjectSlide({
       const rect = slideRef.current.getBoundingClientRect();
       const windowHeight = window.innerHeight;
       const slideHeight = rect.height;
+      setIsMobile(window.innerWidth < 768);
 
       const totalScrollDistance = slideHeight + windowHeight;
       const scrolled = windowHeight - rect.top;
@@ -131,11 +135,11 @@ export default function ProjectSlide({
   return (
     <div
       ref={slideRef}
-      className="relative"
+      className={`relative min-h-[95vh] ${isLast ? "md:min-h-[120vh]" : "md:min-h-[150vh]"} ${
+        index > 0 ? "-mt-[18vh] md:-mt-[40vh]" : ""
+      }`}
       style={{
-        minHeight: "150vh",
         backgroundColor: bgColor,
-        marginTop: index > 0 ? "-40vh" : 0,
         zIndex: index + 1,
       }}
     >
@@ -174,13 +178,13 @@ export default function ProjectSlide({
           const ry = circleHeight / 2;
           const svgHeight = circleHeight * 0.5;
 
-          // Arc just inside the top edge
+          // Mobile gets a flatter, more centered arc for larger text.
           const innerRx = rx * 0.98;
-          const innerRy = ry * 0.98;
+          const innerRy = ry * (isMobile ? 0.94 : 0.98);
 
           // Start and end angles for the arc (in radians)
-          const startAngle = -2.15;
-          const endAngle = -1.9;
+          const startAngle = isMobile ? -2.05 : -2.15;
+          const endAngle = isMobile ? -1.05 : -1.9;
 
           // Calculate start and end points on the inner ellipse
           const cx = rx;
@@ -212,10 +216,9 @@ export default function ProjectSlide({
                 <path id={`sunCurve-${index}`} d={arcPath} fill="none" />
               </defs>
               <text
+                className="text-[8px] md:text-[2px] tracking-[0.04em] md:tracking-[0.1em]"
                 style={{
                   fontFamily: "var(--font-playfair), Georgia, serif",
-                  fontSize: "2px",
-                  letterSpacing: "0.1em",
                   fill: "rgba(255,255,255,0.35)",
                   fontStyle: "italic",
                 }}
@@ -236,7 +239,7 @@ export default function ProjectSlide({
       {/* Content */}
       <div
         id={anchorId}
-        className="project-slide-content relative z-10 min-h-screen flex items-center justify-center py-20"
+        className="project-slide-content relative z-10 min-h-[72vh] md:min-h-screen flex items-center justify-center py-8 md:py-20"
         style={{
           opacity: isInitialStateReady ? contentOpacity : 1,
           transform: isInitialStateReady ? `translateY(${contentY}px)` : "none",
@@ -284,7 +287,7 @@ export default function ProjectSlide({
 
           {/* Text Content */}
           <div className="flex flex-col items-center">
-            <p className="text-sm uppercase tracking-[0.2em] text-slate-600">
+            <p className="text-sm uppercase tracking-[0.2em] text-slate-700">
               {project.category}
             </p>
 
@@ -296,7 +299,7 @@ export default function ProjectSlide({
 
             {project.description && (
               <div className="mb-6">
-                <p className="text-slate-600 text-sm leading-relaxed max-w-sm">
+                <p className="text-slate-700 text-sm leading-relaxed max-w-sm">
                   {project.description}
                 </p>
               </div>

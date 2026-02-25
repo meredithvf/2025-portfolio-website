@@ -2,6 +2,7 @@
 
 import {
   useEffect,
+  useLayoutEffect,
   useRef,
   useState,
   type KeyboardEvent as ReactKeyboardEvent,
@@ -24,6 +25,13 @@ export default function Home() {
   const [captionRendered, setCaptionRendered] = useState(false);
   const initialHashTargetRef = useRef<string | null>(null);
   const previousProgressRef = useRef(0);
+  const touchLastYRef = useRef<number | null>(null);
+  const touchLastTimeRef = useRef<number | null>(null);
+  const touchVelocityRef = useRef(0);
+  const touchInertiaRafRef = useRef<number | null>(null);
+  const touchManualScrollActiveRef = useRef(false);
+  const stableViewportHeightRef = useRef(0);
+  const [viewportHeightPx, setViewportHeightPx] = useState(0);
 
   // --- CONFIG ------------------------------------------------------------
   const MIN_ZOOM = 1;
@@ -96,6 +104,38 @@ export default function Home() {
       ? "Scroll to zoom out"
       : "Scroll to zoom";
   const scrollHintArrow = zoomComplete ? "↓" : showZoomOutHint ? "↑" : "↓";
+  const getMeasuredViewportHeight = () => {
+    if (typeof window === "undefined") return 0;
+    // Use innerHeight so stable sizing isn't driven by dynamic browser chrome UI.
+    return Math.round(Math.max(1, window.innerHeight));
+  };
+  const getStableViewportHeight = () =>
+    stableViewportHeightRef.current || getMeasuredViewportHeight();
+  const getZoomPhaseHeight = () => getStableViewportHeight() * 3;
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const applyViewportHeight = (nextHeight: number) => {
+      stableViewportHeightRef.current = nextHeight;
+      setViewportHeightPx(nextHeight);
+    };
+
+    applyViewportHeight(getMeasuredViewportHeight());
+
+    const handleOrientationChange = () => {
+      // Keep height locked during regular scrolling to avoid browser chrome
+      // show/hide changing the zoom math mid-gesture.
+      window.setTimeout(() => {
+        applyViewportHeight(getMeasuredViewportHeight());
+      }, 200);
+    };
+
+    window.addEventListener("orientationchange", handleOrientationChange);
+    return () => {
+      window.removeEventListener("orientationchange", handleOrientationChange);
+    };
+  }, []);
 
   useEffect(() => {
     randomTargetRef.current = randomTarget;
@@ -124,7 +164,7 @@ export default function Home() {
       return;
     }
 
-    const zoomPhaseHeight = window.innerHeight * 3;
+    const zoomPhaseHeight = getZoomPhaseHeight();
     window.scrollTo({
       top: zoomPhaseHeight,
       behavior: "smooth",
@@ -151,7 +191,7 @@ export default function Home() {
     if (typeof window === "undefined") return;
 
     event.preventDefault();
-    const zoomPhaseHeight = window.innerHeight * 3;
+    const zoomPhaseHeight = getZoomPhaseHeight();
     window.scrollTo({
       top: zoomPhaseHeight,
       behavior: "auto",
@@ -246,6 +286,7 @@ export default function Home() {
             dblClickToZoom: false,
             pinchToZoom: false,
             flickEnabled: false,
+            dragToPan: false,
           },
           maxZoomLevel: MAX_ZOOM,
           minZoomLevel: MIN_ZOOM,
@@ -274,8 +315,7 @@ export default function Home() {
             // (e.g. /#work) and route restores don't briefly show a stale
             // fully zoomed-out frame before scroll handlers run.
             const scrollTop = window.scrollY;
-            const windowHeight = window.innerHeight;
-            const zoomPhaseHeight = windowHeight * 3;
+            const zoomPhaseHeight = getZoomPhaseHeight();
             const initialProgress = Math.min(scrollTop / zoomPhaseHeight, 1);
             const initialZoom =
               MIN_ZOOM * Math.pow(MAX_ZOOM / MIN_ZOOM, initialProgress);
@@ -330,7 +370,7 @@ export default function Home() {
   }, []);
 
   // Handle controlled project restores via query token (/?project=<slug>)
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (typeof window === "undefined") return;
     const params = new URLSearchParams(window.location.search);
     const projectSlug = params.get("project");
@@ -375,6 +415,12 @@ export default function Home() {
 
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
+          // Ensure we are in the content phase before aligning to the target
+          // so mobile back restores don't visibly animate from the top.
+          window.scrollTo({
+            top: getZoomPhaseHeight(),
+            behavior: "instant",
+          } as ScrollToOptions);
           alignToTarget();
           requestAnimationFrame(() => {
             alignToTarget();
@@ -387,21 +433,16 @@ export default function Home() {
 
     const releaseOnFirstInteraction = () => {
       releaseProjectSunSuppression();
-      window.removeEventListener("wheel", releaseOnFirstInteraction);
+      window.removeEventListener("pointerdown", releaseOnFirstInteraction);
       window.removeEventListener("touchstart", releaseOnFirstInteraction);
-      window.removeEventListener("mousedown", releaseOnFirstInteraction);
       window.removeEventListener("keydown", releaseOnFirstInteraction);
     };
 
-    window.addEventListener("wheel", releaseOnFirstInteraction, {
+    window.addEventListener("pointerdown", releaseOnFirstInteraction, {
       once: true,
       passive: true,
     });
     window.addEventListener("touchstart", releaseOnFirstInteraction, {
-      once: true,
-      passive: true,
-    });
-    window.addEventListener("mousedown", releaseOnFirstInteraction, {
       once: true,
       passive: true,
     });
@@ -413,15 +454,14 @@ export default function Home() {
     return () => {
       window.clearTimeout(timeoutId);
       releaseProjectSunSuppression();
-      window.removeEventListener("wheel", releaseOnFirstInteraction);
+      window.removeEventListener("pointerdown", releaseOnFirstInteraction);
       window.removeEventListener("touchstart", releaseOnFirstInteraction);
-      window.removeEventListener("mousedown", releaseOnFirstInteraction);
       window.removeEventListener("keydown", releaseOnFirstInteraction);
     };
   }, []);
 
   // If we land on the page with a section hash, handle navigation
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (typeof window === "undefined") return;
     const hash = window.location.hash;
     if (!hash) return;
@@ -458,6 +498,12 @@ export default function Home() {
       // Wait for layout to settle, then align to the requested anchor.
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
+          // Ensure we are in the content phase before aligning to the target
+          // so hash restores don't visibly animate from the top.
+          window.scrollTo({
+            top: getZoomPhaseHeight(),
+            behavior: "instant",
+          } as ScrollToOptions);
           const alignToTarget = () => {
             const el = document.getElementById(targetId);
             if (el) {
@@ -483,22 +529,17 @@ export default function Home() {
 
     const releaseOnFirstInteraction = () => {
       releaseProjectSunSuppression();
-      window.removeEventListener("wheel", releaseOnFirstInteraction);
+      window.removeEventListener("pointerdown", releaseOnFirstInteraction);
       window.removeEventListener("touchstart", releaseOnFirstInteraction);
-      window.removeEventListener("mousedown", releaseOnFirstInteraction);
       window.removeEventListener("keydown", releaseOnFirstInteraction);
     };
 
     if (shouldSuppressProjectSun) {
-      window.addEventListener("wheel", releaseOnFirstInteraction, {
+      window.addEventListener("pointerdown", releaseOnFirstInteraction, {
         once: true,
         passive: true,
       });
       window.addEventListener("touchstart", releaseOnFirstInteraction, {
-        once: true,
-        passive: true,
-      });
-      window.addEventListener("mousedown", releaseOnFirstInteraction, {
         once: true,
         passive: true,
       });
@@ -512,9 +553,8 @@ export default function Home() {
     return () => {
       window.clearTimeout(timeoutId);
       releaseProjectSunSuppression();
-      window.removeEventListener("wheel", releaseOnFirstInteraction);
+      window.removeEventListener("pointerdown", releaseOnFirstInteraction);
       window.removeEventListener("touchstart", releaseOnFirstInteraction);
-      window.removeEventListener("mousedown", releaseOnFirstInteraction);
       window.removeEventListener("keydown", releaseOnFirstInteraction);
     };
   }, []);
@@ -523,8 +563,7 @@ export default function Home() {
   useEffect(() => {
     const syncFromScrollPosition = () => {
       const scrollTop = window.scrollY;
-      const windowHeight = window.innerHeight;
-      const zoomPhaseHeight = windowHeight * 3;
+      const zoomPhaseHeight = getZoomPhaseHeight();
 
       let newProgress: number;
       let newZoomComplete: boolean;
@@ -629,15 +668,133 @@ export default function Home() {
     };
   }, []);
 
+  // Mobile fallback: if a library blocks native touch scroll during zoom phase,
+  // map vertical swipes to window scroll so zoom-in/out stays usable.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (!("ontouchstart" in window)) return;
+
+    const cancelInertia = () => {
+      if (touchInertiaRafRef.current !== null) {
+        window.cancelAnimationFrame(touchInertiaRafRef.current);
+        touchInertiaRafRef.current = null;
+      }
+    };
+
+    const startInertia = () => {
+      cancelInertia();
+
+      let velocity = touchVelocityRef.current;
+      if (Math.abs(velocity) < 0.06) return;
+
+      let previousTime = performance.now();
+      const DECAY = 0.92;
+      const STOP_VELOCITY = 0.02;
+
+      const step = (now: number) => {
+        const dt = now - previousTime;
+        previousTime = now;
+
+        window.scrollBy({ top: velocity * dt, behavior: "auto" });
+        velocity *= Math.pow(DECAY, dt / 16.67);
+
+        if (Math.abs(velocity) <= STOP_VELOCITY) {
+          touchInertiaRafRef.current = null;
+          touchVelocityRef.current = 0;
+          return;
+        }
+
+        touchInertiaRafRef.current = window.requestAnimationFrame(step);
+      };
+
+      touchInertiaRafRef.current = window.requestAnimationFrame(step);
+    };
+
+    const onTouchStart = (event: TouchEvent) => {
+      cancelInertia();
+      if (event.touches.length !== 1) {
+        touchLastYRef.current = null;
+        touchLastTimeRef.current = null;
+        touchVelocityRef.current = 0;
+        touchManualScrollActiveRef.current = false;
+        return;
+      }
+
+      const viewportHeight = getStableViewportHeight();
+      const zoomPhaseHeight = viewportHeight * 3;
+      // Keep manual scroll active through the full-screen zoom image area too,
+      // so gestures continue working immediately after fully zooming in.
+      touchManualScrollActiveRef.current = window.scrollY < zoomPhaseHeight + 24;
+
+      touchVelocityRef.current = 0;
+      touchLastYRef.current = event.touches[0].clientY;
+      touchLastTimeRef.current = performance.now();
+    };
+
+    const onTouchMove = (event: TouchEvent) => {
+      if (event.touches.length !== 1) return;
+      if (!touchManualScrollActiveRef.current) return;
+      if (touchLastYRef.current === null) {
+        touchLastYRef.current = event.touches[0].clientY;
+        touchLastTimeRef.current = performance.now();
+        return;
+      }
+
+      const currentY = event.touches[0].clientY;
+      const now = performance.now();
+      const deltaY = touchLastYRef.current - currentY;
+      const dt = touchLastTimeRef.current ? now - touchLastTimeRef.current : 16.67;
+      touchLastYRef.current = currentY;
+      touchLastTimeRef.current = now;
+      if (Math.abs(deltaY) < 0.5) return;
+      const MAX_TOUCH_STEP_PX = 28;
+      const clampedDeltaY = Math.max(
+        -MAX_TOUCH_STEP_PX,
+        Math.min(MAX_TOUCH_STEP_PX, deltaY),
+      );
+
+      const instantaneousVelocity = clampedDeltaY / Math.max(dt, 1);
+      touchVelocityRef.current =
+        touchVelocityRef.current * 0.65 + instantaneousVelocity * 0.35;
+
+      event.preventDefault();
+      window.scrollBy({ top: clampedDeltaY, behavior: "auto" });
+    };
+
+    const onTouchEnd = () => {
+      touchLastYRef.current = null;
+      touchLastTimeRef.current = null;
+      if (touchManualScrollActiveRef.current) {
+        startInertia();
+      } else {
+        touchVelocityRef.current = 0;
+      }
+      touchManualScrollActiveRef.current = false;
+    };
+
+    window.addEventListener("touchstart", onTouchStart, { passive: true });
+    window.addEventListener("touchmove", onTouchMove, { passive: false });
+    window.addEventListener("touchend", onTouchEnd, { passive: true });
+    window.addEventListener("touchcancel", onTouchEnd, { passive: true });
+
+    return () => {
+      cancelInertia();
+      window.removeEventListener("touchstart", onTouchStart);
+      window.removeEventListener("touchmove", onTouchMove);
+      window.removeEventListener("touchend", onTouchEnd);
+      window.removeEventListener("touchcancel", onTouchEnd);
+    };
+  }, []);
+
   return (
     <div className="relative">
       <>
-        <div style={{ height: "300vh" }} />
+        <div style={{ height: viewportHeightPx ? `${viewportHeightPx * 3}px` : "300vh" }} />
         <div
           ref={containerRef}
           style={{
             width: "100vw",
-            height: "100vh",
+            height: viewportHeightPx ? `${viewportHeightPx}px` : "100vh",
             overflow: "hidden",
             position: zoomComplete ? "relative" : "fixed",
             top: zoomComplete ? "auto" : 0,
@@ -647,7 +804,9 @@ export default function Home() {
             transform: "translate3d(0, 0, 0)",
             opacity: imageLoaded ? 1 : 0,
             transition: "opacity 0.3s ease-in",
-            pointerEvents: zoomComplete ? "none" : "auto",
+            // Let swipes always reach document scrolling.
+            pointerEvents: "none",
+            touchAction: "pan-y",
             backgroundColor: "#1a1a18",
           }}
         >
@@ -664,6 +823,9 @@ export default function Home() {
               imageRendering: "auto",
               WebkitFontSmoothing: "antialiased",
               MozOsxFontSmoothing: "grayscale",
+              // Keep the collage visual-only so touch scroll always reaches the page.
+              pointerEvents: "none",
+              touchAction: "pan-y",
             }}
           />
           {imageLoaded && (
@@ -687,6 +849,7 @@ export default function Home() {
                 zIndex: 10,
                 cursor: "pointer",
                 backdropFilter: "blur(4px)",
+                pointerEvents: "auto",
               }}
             >
               {scrollHintText}
