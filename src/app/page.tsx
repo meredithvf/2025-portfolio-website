@@ -41,6 +41,7 @@ export default function Home() {
   const [isZoomingOut, setIsZoomingOut] = useState(false);
   const [showCaption, setShowCaption] = useState(false);
   const [captionRendered, setCaptionRendered] = useState(false);
+  const [isProjectRestoreActive, setIsProjectRestoreActive] = useState(false);
   const initialHashTargetRef = useRef<string | null>(null);
   const previousProgressRef = useRef(0);
   const touchLastYRef = useRef<number | null>(null);
@@ -48,6 +49,7 @@ export default function Home() {
   const touchVelocityRef = useRef(0);
   const touchInertiaRafRef = useRef<number | null>(null);
   const touchManualScrollActiveRef = useRef(false);
+  const cancelTouchMotionRef = useRef<() => void>(() => {});
   const stableViewportHeightRef = useRef(0);
   const [viewportHeightPx, setViewportHeightPx] = useState(0);
 
@@ -130,6 +132,8 @@ export default function Home() {
   const getStableViewportHeight = () =>
     stableViewportHeightRef.current || getMeasuredViewportHeight();
   const getZoomPhaseHeight = () => getStableViewportHeight() * 3;
+  const isTouchDevice = () =>
+    "ontouchstart" in window || navigator.maxTouchPoints > 0;
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -152,6 +156,17 @@ export default function Home() {
     window.addEventListener("orientationchange", handleOrientationChange);
     return () => {
       window.removeEventListener("orientationchange", handleOrientationChange);
+    };
+  }, []);
+
+  // Prevent native back/forward scroll restoration from briefly jumping to a
+  // stale position before our custom project/hash restore alignment runs.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const previous = window.history.scrollRestoration;
+    window.history.scrollRestoration = "manual";
+    return () => {
+      window.history.scrollRestoration = previous;
     };
   }, []);
 
@@ -396,6 +411,7 @@ export default function Home() {
 
     const targetId = `project-${projectSlug}`;
     initialHashTargetRef.current = targetId;
+    setIsProjectRestoreActive(true);
 
     document.documentElement.classList.add("show-scrollbar");
     document.body.classList.add("show-scrollbar");
@@ -421,10 +437,12 @@ export default function Home() {
         block: "center",
       } as ScrollIntoViewOptions);
     };
+    const pendingRestoreTimeouts: number[] = [];
 
     const scrollToTarget = () => {
       // Enter the same layout phase users naturally reach after scrolling down.
       // This preserves the "fully zoomed image appears first" behavior on upward scroll.
+      cancelTouchMotionRef.current();
       setZoomComplete(true);
       setScrollProgress(1);
       setShowCaption(true);
@@ -442,9 +460,27 @@ export default function Home() {
           alignToTarget();
           requestAnimationFrame(() => {
             alignToTarget();
-            releaseProjectSunSuppression();
-            initialHashTargetRef.current = null;
-            clearProjectQueryToken();
+            if (isTouchDevice()) {
+              pendingRestoreTimeouts.push(
+                window.setTimeout(() => {
+                  alignToTarget();
+                }, 120),
+              );
+              pendingRestoreTimeouts.push(
+                window.setTimeout(() => {
+                  alignToTarget();
+                  releaseProjectSunSuppression();
+                  initialHashTargetRef.current = null;
+                  clearProjectQueryToken();
+                  setIsProjectRestoreActive(false);
+                }, 320),
+              );
+            } else {
+              releaseProjectSunSuppression();
+              initialHashTargetRef.current = null;
+              clearProjectQueryToken();
+              setIsProjectRestoreActive(false);
+            }
           });
         });
       });
@@ -453,7 +489,9 @@ export default function Home() {
     const timeoutId = window.setTimeout(scrollToTarget, 0);
     return () => {
       window.clearTimeout(timeoutId);
+      pendingRestoreTimeouts.forEach((id) => window.clearTimeout(id));
       releaseProjectSunSuppression();
+      setIsProjectRestoreActive(false);
     };
   }, []);
 
@@ -466,6 +504,7 @@ export default function Home() {
     const targetId = hash.replace("#", "");
     const isProjectTarget = targetId.startsWith("project-");
     if (targetId !== "work" && targetId !== "intro" && !isProjectTarget) return;
+    setIsProjectRestoreActive(true);
 
     // Store the hash target so scroll handler knows not to hide scrollbar
     initialHashTargetRef.current = targetId;
@@ -520,16 +559,18 @@ export default function Home() {
             alignToTarget();
             releaseProjectSunSuppression();
             initialHashTargetRef.current = null;
+            setIsProjectRestoreActive(false);
           });
         });
       });
     };
 
     // Delay to ensure layout is ready (OpenSeadragon container needs time to initialize)
-    const timeoutId = window.setTimeout(scrollToTarget, isProjectTarget ? 0 : 150);
+    const timeoutId = window.setTimeout(scrollToTarget, 0);
     return () => {
       window.clearTimeout(timeoutId);
       releaseProjectSunSuppression();
+      setIsProjectRestoreActive(false);
     };
   }, []);
 
@@ -608,6 +649,84 @@ export default function Home() {
     };
 
     const forceResyncAfterHistoryRestore = () => {
+      // Browser back/forward can restore a cached Home snapshot where the
+      // initial `/?project=<slug>` layout effect does not rerun. Re-apply the
+      // same project restore alignment here so native back matches header "Back".
+      if (!initialHashTargetRef.current) {
+        const params = new URLSearchParams(window.location.search);
+        const projectSlug = params.get("project");
+
+        if (projectSlug) {
+          const targetId = `project-${projectSlug}`;
+          const targetEl = document.getElementById(targetId);
+
+          if (targetEl) {
+            initialHashTargetRef.current = targetId;
+            setIsProjectRestoreActive(true);
+            document.documentElement.classList.add("show-scrollbar");
+            document.body.classList.add("show-scrollbar");
+            document.body.classList.add("skip-intro-animations");
+            document.body.classList.add("suppress-project-slide-sun");
+
+            cancelTouchMotionRef.current();
+            setZoomComplete(true);
+            setScrollProgress(1);
+            setShowCaption(true);
+            setCaptionRendered(true);
+            wasZoomedInRef.current = true;
+
+            requestAnimationFrame(() => {
+              requestAnimationFrame(() => {
+                window.scrollTo({
+                  top: getZoomPhaseHeight(),
+                  behavior: "instant",
+                } as ScrollToOptions);
+                targetEl.scrollIntoView({
+                  behavior: "instant",
+                  block: "center",
+                } as ScrollIntoViewOptions);
+                const finishProjectRestore = () => {
+                  document.body.classList.remove("suppress-project-slide-sun");
+                  initialHashTargetRef.current = null;
+                  setIsProjectRestoreActive(false);
+
+                  const nextUrl = new URL(window.location.href);
+                  nextUrl.searchParams.delete("project");
+                  const nextPath = `${nextUrl.pathname}${nextUrl.search}${nextUrl.hash}`;
+                  window.history.replaceState(
+                    window.history.state,
+                    "",
+                    nextPath || "/",
+                  );
+
+                  syncFromScrollPosition();
+                };
+
+                if (isTouchDevice()) {
+                  window.setTimeout(() => {
+                    targetEl.scrollIntoView({
+                      behavior: "instant",
+                      block: "center",
+                    } as ScrollIntoViewOptions);
+                  }, 120);
+                  window.setTimeout(() => {
+                    targetEl.scrollIntoView({
+                      behavior: "instant",
+                      block: "center",
+                    } as ScrollIntoViewOptions);
+                    finishProjectRestore();
+                  }, 320);
+                } else {
+                  finishProjectRestore();
+                }
+              });
+            });
+
+            return;
+          }
+        }
+      }
+
       syncFromScrollPosition();
     };
 
@@ -654,6 +773,14 @@ export default function Home() {
         touchInertiaRafRef.current = null;
       }
     };
+    const cancelTouchMotion = () => {
+      cancelInertia();
+      touchVelocityRef.current = 0;
+      touchManualScrollActiveRef.current = false;
+      touchLastYRef.current = null;
+      touchLastTimeRef.current = null;
+    };
+    cancelTouchMotionRef.current = cancelTouchMotion;
 
     const startInertia = () => {
       cancelInertia();
@@ -752,7 +879,8 @@ export default function Home() {
     window.addEventListener("touchcancel", onTouchEnd, { passive: true });
 
     return () => {
-      cancelInertia();
+      cancelTouchMotion();
+      cancelTouchMotionRef.current = () => {};
       window.removeEventListener("touchstart", onTouchStart);
       window.removeEventListener("touchmove", onTouchMove);
       window.removeEventListener("touchend", onTouchEnd);
@@ -776,7 +904,7 @@ export default function Home() {
             zIndex: zoomComplete ? 1 : 10,
             backfaceVisibility: "hidden",
             transform: "translate3d(0, 0, 0)",
-            opacity: imageLoaded ? 1 : 0,
+              opacity: imageLoaded && !isProjectRestoreActive ? 1 : 0,
             transition: "opacity 0.3s ease-in",
             // Let swipes always reach document scrolling.
             pointerEvents: "none",
@@ -876,7 +1004,12 @@ export default function Home() {
       <main
         id="main-content"
         className="relative bg-background"
-        style={{ zIndex: 1 }}
+        style={{
+          zIndex: 1,
+          opacity: isProjectRestoreActive ? 0 : 1,
+          transition: isProjectRestoreActive ? "none" : "opacity 0.18s ease-out",
+          pointerEvents: isProjectRestoreActive ? "none" : "auto",
+        }}
       >
         <Intro onWorkReverseTab={handleWorkReverseTab} />
         <WorkShowcase projects={projects} />
