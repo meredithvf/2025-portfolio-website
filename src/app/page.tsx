@@ -442,6 +442,7 @@ export default function Home() {
           alignToTarget();
           requestAnimationFrame(() => {
             alignToTarget();
+            releaseProjectSunSuppression();
             initialHashTargetRef.current = null;
             clearProjectQueryToken();
           });
@@ -449,32 +450,10 @@ export default function Home() {
       });
     };
 
-    const releaseOnFirstInteraction = () => {
-      releaseProjectSunSuppression();
-      window.removeEventListener("pointerdown", releaseOnFirstInteraction);
-      window.removeEventListener("touchstart", releaseOnFirstInteraction);
-      window.removeEventListener("keydown", releaseOnFirstInteraction);
-    };
-
-    window.addEventListener("pointerdown", releaseOnFirstInteraction, {
-      once: true,
-      passive: true,
-    });
-    window.addEventListener("touchstart", releaseOnFirstInteraction, {
-      once: true,
-      passive: true,
-    });
-    window.addEventListener("keydown", releaseOnFirstInteraction, {
-      once: true,
-    });
-
     const timeoutId = window.setTimeout(scrollToTarget, 0);
     return () => {
       window.clearTimeout(timeoutId);
       releaseProjectSunSuppression();
-      window.removeEventListener("pointerdown", releaseOnFirstInteraction);
-      window.removeEventListener("touchstart", releaseOnFirstInteraction);
-      window.removeEventListener("keydown", releaseOnFirstInteraction);
     };
   }, []);
 
@@ -539,41 +518,18 @@ export default function Home() {
           // Run a second pass after one more frame to absorb late layout shifts.
           requestAnimationFrame(() => {
             alignToTarget();
+            releaseProjectSunSuppression();
             initialHashTargetRef.current = null;
           });
         });
       });
     };
 
-    const releaseOnFirstInteraction = () => {
-      releaseProjectSunSuppression();
-      window.removeEventListener("pointerdown", releaseOnFirstInteraction);
-      window.removeEventListener("touchstart", releaseOnFirstInteraction);
-      window.removeEventListener("keydown", releaseOnFirstInteraction);
-    };
-
-    if (shouldSuppressProjectSun) {
-      window.addEventListener("pointerdown", releaseOnFirstInteraction, {
-        once: true,
-        passive: true,
-      });
-      window.addEventListener("touchstart", releaseOnFirstInteraction, {
-        once: true,
-        passive: true,
-      });
-      window.addEventListener("keydown", releaseOnFirstInteraction, {
-        once: true,
-      });
-    }
-
     // Delay to ensure layout is ready (OpenSeadragon container needs time to initialize)
     const timeoutId = window.setTimeout(scrollToTarget, isProjectTarget ? 0 : 150);
     return () => {
       window.clearTimeout(timeoutId);
       releaseProjectSunSuppression();
-      window.removeEventListener("pointerdown", releaseOnFirstInteraction);
-      window.removeEventListener("touchstart", releaseOnFirstInteraction);
-      window.removeEventListener("keydown", releaseOnFirstInteraction);
     };
   }, []);
 
