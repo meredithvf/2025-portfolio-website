@@ -82,7 +82,7 @@ export default function Intro({ onWorkReverseTab }: IntroProps) {
                  deeply about spiritual matters and the art of living.
                 </p>
                 <p>
-                  When I'm not at a monastery, I am a vivacious software
+                  When I&apos;m not at a monastery, I am a vivacious software
                   engineer. I find joy in creating beautiful, functional, and
                   accessible digital experiences.
                 </p>

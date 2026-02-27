@@ -1,6 +1,13 @@
 import type { NextConfig } from "next";
+import path from "path";
 
 const nextConfig: NextConfig = {
+  // Avoid root auto-detection issues when multiple lockfiles exist
+  // (e.g. one in home directory and one in the project).
+  outputFileTracingRoot: path.join(__dirname),
+  turbopack: {
+    root: path.join(__dirname),
+  },
   images: {
     // Enable image optimization for local images
     unoptimized: false,

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
 export default function Footer() {
@@ -54,7 +55,7 @@ export default function Footer() {
           `}
         >
           <p className="text-sm uppercase tracking-[0.16em] font-medium text-foreground/[0.66] mb-4">
-            Let's connect
+            Let&apos;s connect
           </p>
           <a
             href="mailto:meredithvf@gmail.com"
@@ -87,13 +88,13 @@ export default function Footer() {
               Download Resume
             </button>
             
-            <a
+            <Link
               href="/#intro"
               className="text-sm text-foreground/[0.66] hover:text-foreground transition-colors duration-300"
               aria-label="Scroll back to top"
             >
               Back to top ↑
-            </a>
+            </Link>
           </div>
         </div>
       </div>

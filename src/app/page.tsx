@@ -12,11 +12,29 @@ import WorkShowcase from "@/components/WorkShowcase";
 import Footer from "@/components/Footer";
 import { projects } from "@/data/projects";
 
+type ViewerRuntime = {
+  viewport: {
+    panTo: (center: { x: number; y: number }, immediately?: boolean) => void;
+    zoomTo: (
+      zoom: number,
+      refPoint?: { x: number; y: number },
+      immediately?: boolean,
+    ) => void;
+    goHome: () => void;
+    getCenter: () => { x: number; y: number };
+  };
+  addHandler: (eventName: string, handler: (event?: unknown) => void) => void;
+};
+
+type ViewerDestroyable = {
+  destroy: () => void;
+};
+
 export default function Home() {
   const viewerRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const scrollHintButtonRef = useRef<HTMLButtonElement>(null);
-  const viewerInstanceRef = useRef<any>(null);
+  const viewerInstanceRef = useRef<ViewerDestroyable | null>(null);
   const [imageLoaded, setImageLoaded] = useState(false);
   const [scrollProgress, setScrollProgress] = useState(0);
   const [zoomComplete, setZoomComplete] = useState(false);
@@ -207,7 +225,7 @@ export default function Home() {
   };
 
   const applyViewerFromProgress = (progress: number) => {
-    const viewer = viewerInstanceRef.current;
+    const viewer = viewerInstanceRef.current as ViewerRuntime | null;
     const homeCenter = homeCenterRef.current;
     if (!viewer || !homeCenter) return;
 

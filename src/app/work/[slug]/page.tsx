@@ -37,7 +37,7 @@ export default async function ProjectDetailPage({
             quality, and cross-org alignment—leading projects like Accessibility
             Focus Testing, On-Canvas Keyboard Navigation, and the Design System
             Catalog Update. I partnered with UX, engineering, legal, and product
-            to advance WCAG compliance and publish Lucid's{" "}
+            to advance WCAG compliance and publish Lucid&apos;s{" "}
             <a
               href="https://www.lucid.co/accessibility"
               target="_blank"
@@ -115,7 +115,7 @@ export default async function ProjectDetailPage({
             </a>
             . Cereal is a reading-first app that integrates with Patreon to
             improve reading, listening, and navigation experiences for serial
-            fiction authors and their subscribers."
+            fiction authors and their subscribers.
           </>
         }
         overviewMedia={{

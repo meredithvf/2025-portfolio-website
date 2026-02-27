@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import React, { useEffect, useRef } from "react";
 import ProjectHeader from "@/components/ProjectHeader";
 import TechnicalStack from "@/components/TechnicalStack";
@@ -91,12 +92,12 @@ export default function ProjectLayout({
       {/* Side Navigation - hidden on mobile */}
       <div className="hidden lg:block fixed top-1/2 left-8 -translate-y-1/2 z-50">
         <div className="sideways-lr flex flex-row items-center justify-center gap-x-40">
-          <a
+          <Link
             href="/#work"
             className="text-foreground/40 hover:text-foreground transition-colors duration-300 text-sm tracking-wider"
           >
             Work
-          </a>
+          </Link>
           <a
             href="mailto:meredithvf@gmail.com"
             className="text-foreground/40 hover:text-foreground transition-colors duration-300 text-sm tracking-wider"
@@ -107,12 +108,12 @@ export default function ProjectLayout({
       </div>
       <div className="hidden lg:block fixed top-1/2 right-8 -translate-y-1/2 z-50">
         <div className="vertical-lr flex flex-row items-center justify-center gap-x-40">
-          <a
+          <Link
             href="/#intro"
             className="text-foreground/40 hover:text-foreground transition-colors duration-300 text-sm tracking-wider"
           >
             Home
-          </a>
+          </Link>
           <a
             href="/resume.pdf"
             download="meredith-von-feldt-resume.pdf"
@@ -332,7 +333,7 @@ export default function ProjectLayout({
           )}
 
           {/* Back to Work Link */}
-          <a
+          <Link
             href="/#work"
             className="group inline-flex items-center gap-3 text-foreground/60 hover:text-foreground transition-colors duration-300"
           >
@@ -340,7 +341,7 @@ export default function ProjectLayout({
               ←
             </span>
             <span className="text-lg">Back to all work</span>
-          </a>
+          </Link>
         </div>
       </div>
     </>

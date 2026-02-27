@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState, useRef } from "react";
 
 interface ProjectHeaderProps {
@@ -59,7 +60,7 @@ export default function ProjectHeader({
       />
 
       {/* Back link */}
-      <a
+      <Link
         href={backHref}
         className="absolute top-6 left-6 md:top-8 md:left-8 text-background/60 hover:text-background transition-all duration-500 flex items-center gap-5 text-sm opacity-100 translate-y-0"
       >
@@ -67,7 +68,7 @@ export default function ProjectHeader({
           ←
         </span>
         <span>Back</span>
-      </a>
+      </Link>
 
       {/* Quick actions */}
       <nav
@@ -88,18 +89,18 @@ export default function ProjectHeader({
           >
             Email
           </a>
-          <a
+          <Link
             href="/#intro"
             className="hover:text-background transition-colors duration-300"
           >
             Home
-          </a>
-          <a
+          </Link>
+          <Link
             href="/#work"
             className="hover:text-background transition-colors duration-300"
           >
             Work
-          </a>
+          </Link>
         </div>
       </nav>
 
