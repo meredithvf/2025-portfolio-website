@@ -823,9 +823,10 @@ export default function Home() {
 
       const viewportHeight = getStableViewportHeight();
       const zoomPhaseHeight = viewportHeight * 3;
-      // Keep manual scroll active through the full-screen zoom image area too,
-      // so gestures continue working immediately after fully zooming in.
-      touchManualScrollActiveRef.current = window.scrollY < zoomPhaseHeight + 24;
+      const collagePhaseEnd = zoomPhaseHeight + viewportHeight;
+      // Keep manual scroll active through the full-screen collage area too,
+      // so gestures continue working after fully zooming in.
+      touchManualScrollActiveRef.current = window.scrollY < collagePhaseEnd;
 
       touchVelocityRef.current = 0;
       touchLastYRef.current = event.touches[0].clientY;
