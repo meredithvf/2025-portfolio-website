@@ -262,13 +262,15 @@ export default function ProjectSlide({
               {isVideo ? (
                 <video
                   ref={videoRef}
-                  src={media.src}
                   className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                   muted
                   loop
                   playsInline
                   preload="metadata"
-                />
+                >
+                  <source src={media.src} type="video/mp4" />
+                  Your browser does not support the video tag.
+                </video>
               ) : (
                 <img
                   src={media.src}

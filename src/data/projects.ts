@@ -36,7 +36,7 @@ export const projects: Project[] = [
     description: "A dating safety app providing automated exit strategies and check-ins for safer dating experiences.",
     showcaseMedia: {
       type: "video",
-      src: "https://github.com/meredithvf/website-video-hosting/releases/download/V1.0.0/SavaPromo.mp4",
+      src: "/videos/SavaPromo.mp4",
     },
     sunColor: "#f7d88b", // Soft golden yellow
   },

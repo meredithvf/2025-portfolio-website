@@ -167,7 +167,7 @@ export default async function ProjectDetailPage({
         overviewText="Sava was a dating safety app I built with a team as part of BYU's Sandbox startup accelerator program. We created it to help people feel safer and more comfortable on dates, especially when meeting someone new. The app provides automated exit strategies—like pre-scheduled texts or calls—that give users a socially acceptable way to leave uncomfortable situations without having to explain themselves."
         overviewMedia={{
           type: "video",
-          src: "https://github.com/meredithvf/website-video-hosting/releases/download/V1.0.0/SavaPromo.mp4",
+          src: "/videos/SavaPromo.mp4",
         }}
         overviewDescription="We were driven by our own experiences and those of friends who wanted a better way to stay safe while dating. As a founder I was involved in validation, testing, and prototyping, but I was primarily responsible for the technical implementation, building features that let users set up check-ins throughout their date, receive automated exit calls or texts, and contact emergency services if needed. The app launched in 2022 and was available on all app stores, helping people navigate the dating world with more confidence and peace of mind."
         features={[
