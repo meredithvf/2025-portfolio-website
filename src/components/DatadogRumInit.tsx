@@ -2,8 +2,7 @@
 
 import { datadogRum } from "@datadog/browser-rum";
 import { useEffect } from "react";
-import { usePathname, useSearchParams } from "next/navigation";
-import type { ReadonlyURLSearchParams } from "next/navigation";
+import { usePathname } from "next/navigation";
 
 const DATADOG_ENABLED = true;
 const DATADOG_APPLICATION_ID = "0a6033c8-9f60-4801-b677-5831ba8176fb";
@@ -15,10 +14,9 @@ const DATADOG_VERSION = "1.0.0";
 const DATADOG_SESSION_SAMPLE_RATE = 100;
 const DATADOG_SESSION_REPLAY_SAMPLE_RATE = 20;
 
-const getViewName = (pathname: string, searchParams: ReadonlyURLSearchParams) => {
+const getViewName = (pathname: string) => {
   if (pathname === "/") {
-    const restoredProject = searchParams.get("project");
-    return restoredProject ? `Home (Project: ${restoredProject})` : "Home";
+    return "Home";
   }
 
   if (pathname.startsWith("/work/")) {
@@ -31,7 +29,6 @@ const getViewName = (pathname: string, searchParams: ReadonlyURLSearchParams) =>
 
 export default function DatadogRumInit() {
   const pathname = usePathname();
-  const searchParams = useSearchParams();
 
   useEffect(() => {
     if (!DATADOG_ENABLED || !DATADOG_APPLICATION_ID || !DATADOG_CLIENT_TOKEN) {
@@ -65,13 +62,13 @@ export default function DatadogRumInit() {
       return;
     }
 
-    const viewName = getViewName(pathname, searchParams);
+    const viewName = getViewName(pathname);
     (
       datadogRum as unknown as {
         setViewName?: (name: string) => void;
       }
     ).setViewName?.(viewName);
-  }, [pathname, searchParams]);
+  }, [pathname]);
 
   return null;
 }
