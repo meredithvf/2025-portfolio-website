@@ -94,12 +94,14 @@ export default function ProjectLayout({
         <div className="sideways-lr flex flex-row items-center justify-center gap-x-40">
           <Link
             href="/#work"
+            datadog-action-name="Project Header Work"
             className="text-foreground/40 hover:text-foreground transition-colors duration-300 text-sm tracking-wider"
           >
             Work
           </Link>
           <a
             href="mailto:meredithvf@gmail.com"
+            datadog-action-name="Project Header Contact"
             className="text-foreground/40 hover:text-foreground transition-colors duration-300 text-sm tracking-wider"
           >
             Contact
@@ -110,6 +112,7 @@ export default function ProjectLayout({
         <div className="vertical-lr flex flex-row items-center justify-center gap-x-40">
           <Link
             href="/#intro"
+            datadog-action-name="Project Header Home"
             className="text-foreground/40 hover:text-foreground transition-colors duration-300 text-sm tracking-wider"
           >
             Home
@@ -117,6 +120,7 @@ export default function ProjectLayout({
           <a
             href="/resume.pdf"
             download="meredith-von-feldt-resume.pdf"
+            datadog-action-name="Project Header Resume"
             className="text-foreground/40 hover:text-foreground transition-colors duration-300 text-sm tracking-wider"
           >
             Resume
@@ -149,7 +153,12 @@ export default function ProjectLayout({
                 )}
                 {websiteUrl && (
                   <div className="flex justify-start lg:justify-center items-start lg:col-span-1 lg:pt-1">
-                    <Button href={websiteUrl}>{websiteButtonText} →</Button>
+                    <Button
+                      href={websiteUrl}
+                      datadogActionName={`Project CTA ${title}`}
+                    >
+                      {websiteButtonText} →
+                    </Button>
                   </div>
                 )}
               </div>
@@ -273,6 +282,7 @@ export default function ProjectLayout({
                         href: item.url,
                         target: "_blank",
                         rel: "noopener noreferrer",
+                        "datadog-action-name": `Project News ${title} ${index + 1}`,
                       }
                     : {};
                   const isClickable = !!item.url;
@@ -335,6 +345,7 @@ export default function ProjectLayout({
           {/* Back to Work Link */}
           <Link
             href="/#work"
+            datadog-action-name="Project Back To Work"
             className="group inline-flex items-center gap-3 text-foreground/60 hover:text-foreground transition-colors duration-300"
           >
             <span className="group-hover:-translate-x-2 transition-transform duration-300">

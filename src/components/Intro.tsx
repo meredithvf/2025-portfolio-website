@@ -1,6 +1,10 @@
 "use client";
 
-import { useEffect, useRef, type KeyboardEvent as ReactKeyboardEvent } from "react";
+import {
+  useEffect,
+  useRef,
+  type KeyboardEvent as ReactKeyboardEvent,
+} from "react";
 
 type IntroProps = {
   onWorkReverseTab?: (event: ReactKeyboardEvent<HTMLAnchorElement>) => void;
@@ -22,7 +26,7 @@ export default function Intro({ onWorkReverseTab }: IntroProps) {
       {
         threshold: 0.1,
         rootMargin: "0px 0px -50px 0px",
-      }
+      },
     );
 
     elementsRef.current.forEach((el) => {
@@ -63,45 +67,40 @@ export default function Intro({ onWorkReverseTab }: IntroProps) {
             >
               Software Engineer & Designer
             </p>
-            
+
             <h1
               ref={addToRefs}
               className="animate-on-scroll delay-100 display-heading text-4xl md:text-5xl lg:text-6xl mb-8"
             >
               <span className="italic">Meredith Sunshine</span>
             </h1>
-            
+
             <div
               ref={addToRefs}
               className="animate-on-scroll delay-200 space-y-4 text-lg text-foreground/[0.68] leading-relaxed max-w-xl"
             >
               <p className="mb-4">
-                My name is Meredith, obviously. You just saw a few photos
-                 from the places I lived in 2025 - at Buddhist monastaries, a
-                French abbey, and the most beautiful Moroccan town. I care
-                 deeply about spiritual matters and the art of living.
-                </p>
-                <p>
-                  When I&apos;m not at a monastery, I am a vivacious software
-                  engineer. I find joy in creating beautiful, functional, and
-                  accessible digital experiences.
-                </p>
+                My name is Meredith, obviously. You just saw a few photos from
+                the places I lived in 2025 - at Buddhist monastaries, a French
+                abbey, and the most beautiful Moroccan town. I care deeply about
+                spiritual matters and the art of living.
+              </p>
+              <p>
+                When I&apos;m not at a monastery, I am a vivacious software
+                engineer. I find joy in creating beautiful, functional, and
+                accessible digital experiences.
+              </p>
             </div>
           </div>
 
           {/* Right: Navigation */}
-          <nav
-            className="lg:col-span-5 lg:pt-8"
-            aria-label="Main navigation"
-          >
+          <nav className="lg:col-span-5 lg:pt-8" aria-label="Main navigation">
             <ul className="space-y-4">
-              <li
-                ref={addToRefs}
-                className="animate-on-scroll delay-200"
-              >
+              <li ref={addToRefs} className="animate-on-scroll delay-200">
                 <a
                   href="#work"
                   onKeyDown={onWorkReverseTab}
+                  datadog-action-name="Intro Work"
                   className="group flex items-center justify-between py-3 border-b border-foreground/30 hover:border-foreground/70 transition-colors duration-300"
                 >
                   <span className="display-heading text-2xl md:text-3xl group-hover:translate-x-2 group-hover:scale-110 transition-transform duration-300">
@@ -112,13 +111,11 @@ export default function Intro({ onWorkReverseTab }: IntroProps) {
                   </span>
                 </a>
               </li>
-              
-              <li
-                ref={addToRefs}
-                className="animate-on-scroll delay-300"
-              >
+
+              <li ref={addToRefs} className="animate-on-scroll delay-300">
                 <button
                   onClick={handleResumeDownload}
+                  datadog-action-name="Intro Download Resume"
                   className="group flex items-center justify-between py-3 border-b border-foreground/30 hover:border-foreground/70 transition-colors duration-300 w-full text-left"
                   aria-label="Download resume as PDF"
                 >
@@ -130,13 +127,11 @@ export default function Intro({ onWorkReverseTab }: IntroProps) {
                   </span>
                 </button>
               </li>
-              
-              <li
-                ref={addToRefs}
-                className="animate-on-scroll delay-400"
-              >
+
+              <li ref={addToRefs} className="animate-on-scroll delay-400">
                 <a
                   href="mailto:meredithvf@gmail.com"
+                  datadog-action-name="Intro Email"
                   className="group flex items-center justify-between py-3 border-b border-foreground/30 hover:border-foreground/70 transition-colors duration-300"
                   aria-label="Send email to meredithvf@gmail.com"
                 >

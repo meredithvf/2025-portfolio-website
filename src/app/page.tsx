@@ -845,7 +845,9 @@ export default function Home() {
       const currentY = event.touches[0].clientY;
       const now = performance.now();
       const deltaY = touchLastYRef.current - currentY;
-      const dt = touchLastTimeRef.current ? now - touchLastTimeRef.current : 16.67;
+      const dt = touchLastTimeRef.current
+        ? now - touchLastTimeRef.current
+        : 16.67;
       touchLastYRef.current = currentY;
       touchLastTimeRef.current = now;
       if (Math.abs(deltaY) < 0.5) return;
@@ -892,7 +894,11 @@ export default function Home() {
   return (
     <div className="relative">
       <>
-        <div style={{ height: viewportHeightPx ? `${viewportHeightPx * 3}px` : "300vh" }} />
+        <div
+          style={{
+            height: viewportHeightPx ? `${viewportHeightPx * 3}px` : "300vh",
+          }}
+        />
         <div
           ref={containerRef}
           style={{
@@ -905,7 +911,7 @@ export default function Home() {
             zIndex: zoomComplete ? 1 : 10,
             backfaceVisibility: "hidden",
             transform: "translate3d(0, 0, 0)",
-              opacity: imageLoaded && !isProjectRestoreActive ? 1 : 0,
+            opacity: imageLoaded && !isProjectRestoreActive ? 1 : 0,
             transition: "opacity 0.3s ease-in",
             // Let swipes always reach document scrolling.
             pointerEvents: "none",
@@ -936,8 +942,11 @@ export default function Home() {
               ref={scrollHintButtonRef}
               type="button"
               onClick={jumpToZoomedPhoto}
+              datadog-action-name="Home Scroll Hint"
               onKeyDown={handleScrollHintKeyDown}
-              aria-label={zoomComplete ? "Jump to intro content" : "Jump to zoomed photo"}
+              aria-label={
+                zoomComplete ? "Jump to intro content" : "Jump to zoomed photo"
+              }
               style={{
                 position: "absolute",
                 top: "2rem",
@@ -1008,7 +1017,9 @@ export default function Home() {
         style={{
           zIndex: 1,
           opacity: isProjectRestoreActive ? 0 : 1,
-          transition: isProjectRestoreActive ? "none" : "opacity 0.18s ease-out",
+          transition: isProjectRestoreActive
+            ? "none"
+            : "opacity 0.18s ease-out",
           pointerEvents: isProjectRestoreActive ? "none" : "auto",
         }}
       >

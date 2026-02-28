@@ -18,7 +18,7 @@ export default function Footer() {
       },
       {
         threshold: 0.2,
-      }
+      },
     );
 
     if (footerRef.current) {
@@ -59,6 +59,7 @@ export default function Footer() {
           </p>
           <a
             href="mailto:meredithvf@gmail.com"
+            datadog-action-name="Footer Email"
             className="display-heading text-4xl md:text-5xl lg:text-6xl link-underline hover:text-foreground/70 transition-colors duration-300"
             aria-label="Send email to meredithvf@gmail.com"
           >
@@ -78,18 +79,20 @@ export default function Footer() {
           <p className="text-sm text-foreground/[0.66]">
             © {currentYear} Meredith Sunshine Von Feldt
           </p>
-          
+
           <div className="flex items-center gap-8">
             <button
               onClick={handleResumeDownload}
+              datadog-action-name="Footer Download Resume"
               className="text-sm text-foreground/[0.66] hover:text-foreground transition-colors duration-300 link-underline"
               aria-label="Download resume as PDF"
             >
               Download Resume
             </button>
-            
+
             <Link
               href="/#intro"
+              datadog-action-name="Footer Back To Top"
               className="text-sm text-foreground/[0.66] hover:text-foreground transition-colors duration-300"
               aria-label="Scroll back to top"
             >

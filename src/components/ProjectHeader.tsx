@@ -62,6 +62,7 @@ export default function ProjectHeader({
       {/* Back link */}
       <Link
         href={backHref}
+        datadog-action-name="Project Header Mobile Back"
         className="absolute top-6 left-6 md:top-8 md:left-8 text-background/60 hover:text-background transition-all duration-500 flex items-center gap-5 text-sm opacity-100 translate-y-0"
       >
         <span className="hover:-translate-x-1 transition-transform duration-300">
@@ -79,24 +80,28 @@ export default function ProjectHeader({
           <a
             href="/resume.pdf"
             download="meredith-von-feldt-resume.pdf"
+            datadog-action-name="Project Header Mobile Resume"
             className="hover:text-background transition-colors duration-300"
           >
             Resume
           </a>
           <a
             href="mailto:meredithvf@gmail.com"
+            datadog-action-name="Project Header Mobile Email"
             className="hover:text-background transition-colors duration-300"
           >
             Email
           </a>
           <Link
             href="/#intro"
+            datadog-action-name="Project Header Mobile Home"
             className="hover:text-background transition-colors duration-300"
           >
             Home
           </Link>
           <Link
             href="/#work"
+            datadog-action-name="Project Header MobileWork"
             className="hover:text-background transition-colors duration-300"
           >
             Work

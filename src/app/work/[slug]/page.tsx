@@ -42,6 +42,7 @@ export default async function ProjectDetailPage({
               href="https://www.lucid.co/accessibility"
               target="_blank"
               rel="noopener noreferrer"
+              datadog-action-name="Lucid Accessibility Statement"
               className="underline hover:text-foreground transition-colors"
             >
               accessibility statement
@@ -109,6 +110,7 @@ export default async function ProjectDetailPage({
               href="https://www.cerealreads.com/our_story"
               target="_blank"
               rel="noopener noreferrer"
+              datadog-action-name="Cereal Reads Our Story"
               className="underline hover:text-foreground transition-colors"
             >
               here
@@ -212,12 +214,14 @@ export default async function ProjectDetailPage({
             imageAlt: "BYU students create dating safety app Sava",
           },
           {
-            title: "First all-female team competing in the Student Innovator of the Year competition",
+            title:
+              "First all-female team competing in the Student Innovator of the Year competition",
             url: "https://engineering.byu.edu/news/first-all-female-team-at-sioy",
             source: "BYU Engineering",
             image:
               "https://brightspotcdn.byu.edu/dims4/default/2e43750/2147483647/strip/true/crop/8192x5464+0+0/resize/1920x1281!/quality/90/?url=https%3A%2F%2Fbrigham-young-brightspot-us-east-2.s3.us-east-2.amazonaws.com%2Fe2%2F53%2Ff79576ec4cc487599995ac1417ad%2F2203-07-068-1.jpg",
-            imageAlt: "Two teammates presenting pitch for Sava at the Student Innovator of the Year competition",
+            imageAlt:
+              "Two teammates presenting pitch for Sava at the Student Innovator of the Year competition",
           },
         ]}
       />
