@@ -115,15 +115,15 @@ export default function Home() {
   });
   const randomTargetRef = useRef(randomTarget);
   const wasZoomedInRef = useRef(false);
+  const isMobile = window.innerWidth < 768;
   const homeCenterRef = useRef<{ x: number; y: number } | null>(null);
-  const isFullyZoomedOut = scrollProgress <= 0.001;
-  const showZoomOutHint = isZoomingOut && !isFullyZoomedOut;
   const scrollHintText = zoomComplete
-    ? "Scroll to content"
-    : showZoomOutHint
-      ? "Scroll to zoom out"
-      : "Scroll to zoom";
-  const scrollHintArrow = zoomComplete ? "↓" : showZoomOutHint ? "↑" : "↓";
+    ? isMobile
+      ? "Swipe to content"
+      : "Scroll to content"
+    : isMobile
+      ? "Swipe to zoom in or out"
+      : "Scroll to zoom in or out";
   const getMeasuredViewportHeight = () => {
     if (typeof window === "undefined") return 0;
     // Use innerHeight so stable sizing isn't driven by dynamic browser chrome UI.
@@ -966,7 +966,7 @@ export default function Home() {
             >
               {scrollHintText}
               <span className="text-lg px-2 inline-block ">
-                {scrollHintArrow}
+                {zoomComplete ? "↓" : "↑↓"}
               </span>
             </button>
           )}
