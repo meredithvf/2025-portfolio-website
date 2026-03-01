@@ -1,6 +1,7 @@
 "use client";
 
 import { useLayoutEffect, useRef, useState, type MouseEvent } from "react";
+import Image from "next/image";
 import type { Project } from "@/types/project";
 import { lightenColor } from "@/utils/colorUtils";
 import {
@@ -272,9 +273,11 @@ export default function ProjectSlide({
                   Your browser does not support the video tag.
                 </video>
               ) : (
-                <img
+                <Image
                   src={media.src}
                   alt={project.title}
+                  fill
+                  sizes={isByuLogoImage ? "(max-width: 768px) 16rem, 18rem" : "(max-width: 768px) 20rem, 24rem"}
                   className={`
                     w-full h-full object-cover
                     transition-transform duration-500

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import NextImage from "next/image";
 import Link from "next/link";
 
 export interface Project {
@@ -40,7 +41,7 @@ export default function Work({ projects }: WorkProps) {
 
     if (hoveredProject && hoveredProject.id !== displayedProject?.id) {
       // Preload image and wait for it to be ready
-      const img = new Image();
+      const img = new window.Image();
       img.src = hoveredProject.thumbnail;
 
       const startTransition = () => {
@@ -150,9 +151,11 @@ export default function Work({ projects }: WorkProps) {
                     transition: "opacity 1500ms cubic-bezier(0.4, 0, 0.2, 1)",
                   }}
                 >
-                  <img
+                  <NextImage
                     src={displayedProject.thumbnail}
                     alt={displayedProject.title}
+                    fill
+                    sizes="(max-width: 1024px) 100vw, 50vw"
                     className={`w-full h-full ${
                       displayedProject.thumbnail.includes("byu-logo")
                         ? "object-contain p-20"
@@ -171,9 +174,11 @@ export default function Work({ projects }: WorkProps) {
                     transition: "opacity 900ms cubic-bezier(0.4, 0, 0.2, 1)",
                   }}
                 >
-                  <img
+                  <NextImage
                     src={nextProject.thumbnail}
                     alt={nextProject.title}
+                    fill
+                    sizes="(max-width: 1024px) 100vw, 50vw"
                     className={`w-full h-full ${
                       nextProject.thumbnail.includes("byu-logo")
                         ? "object-contain p-20"

@@ -1,4 +1,5 @@
 import { projects } from "@/data/projects";
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import ProjectHeader from "@/components/ProjectHeader";
 import ProjectLayout from "@/components/ProjectLayout";
@@ -263,9 +264,12 @@ export default async function ProjectDetailPage({
           </div>
 
           <div className="mb-12">
-            <img
+            <Image
               src={project.thumbnail}
               alt={project.title}
+              width={1600}
+              height={900}
+              sizes="(max-width: 1024px) 100vw, 1024px"
               className="w-full h-auto rounded-sm"
             />
           </div>
