@@ -35,9 +35,10 @@ export default async function ProjectDetailPage({
             I worked on the design system team at Lucid Software from 2022-2025,
             eventually becoming team lead. I drove accessibility, design-system
             quality, and cross-org alignment—leading projects like Accessibility
-            Focus Testing, On-Canvas Keyboard Navigation, and the Design System
+            Focus Testing, On-Canvas Keyboard Navigation, and a Design System
             Catalog Update. I partnered with UX, engineering, legal, and product
-            to advance WCAG compliance and publish Lucid&apos;s{" "}
+            to advance Web Content Accessibility Guidelines (WCAG) compliance
+            and publish Lucid&apos;s{" "}
             <a
               href="https://www.lucid.co/accessibility"
               target="_blank"
@@ -102,10 +103,12 @@ export default async function ProjectDetailPage({
         backHref={backHref}
         overviewText={
           <>
-            I created this app with my brother in 2023/2024 in order to solve
-            the problem of serial fiction authors struggling to provide a
-            subscription-worthy reading experience on Patreon. Read our story{" "}
-            {""}
+            My brother and I built Cereal Reads in 2023–2024 to solve a common
+            challenge for serial fiction authors using Patreon: they want to
+            offer a truly subscription-worthy reading experience, but Patreon
+            isn’t designed for long-form, serialized content. Our app integrates
+            with Patreon to make serial fiction easier to read, listen to, and
+            navigate for both authors and subscribers alike. Read our story {""}
             <a
               href="https://www.cerealreads.com/our_story"
               target="_blank"
@@ -115,9 +118,7 @@ export default async function ProjectDetailPage({
             >
               here
             </a>
-            . Cereal is a reading-first app that integrates with Patreon to
-            improve reading, listening, and navigation experiences for serial
-            fiction authors and their subscribers.
+            .
           </>
         }
         overviewMedia={{
@@ -171,7 +172,7 @@ export default async function ProjectDetailPage({
           type: "video",
           src: "/videos/SavaPromo.mp4",
         }}
-        overviewDescription="We were driven by our own experiences and those of friends who wanted a better way to stay safe while dating. As a founder I was involved in validation, testing, and prototyping, but I was primarily responsible for the technical implementation, building features that let users set up check-ins throughout their date, receive automated exit calls or texts, and contact emergency services if needed. The app launched in 2022 and was available on all app stores, helping people navigate the dating world with more confidence and peace of mind."
+        overviewDescription="We were driven by our own experiences and those of friends who wanted a better way to stay safe while dating. As a founder, I was involved in validation, testing, and prototyping. My main responsibility was the technical implementation. I built features that let users set up check-ins throughout their date, receive automated exit calls or texts, and contact emergency services if needed. The app launched in 2022 and was available on all app stores, helping people navigate the dating world with more confidence and peace of mind."
         features={[
           {
             image: "/images/sava/sava-screenshot-step1.jpeg",
@@ -234,7 +235,7 @@ export default async function ProjectDetailPage({
         title={project.title}
         category={project.category}
         backHref={backHref}
-        overviewText="I worked in the BYU Human Computer Interaction Lab from 2019-2021. I was initially drawn to this lab because I was interested in the relationship between technology and the outdoors. Among other projects, I got to spend lots of time researching this topic and in the CHI 2021 proceedings I published &ldquo;Outside Where? A Survey of Climates and Built Environments in Studies of HCI outdoors.&rdquo;"
+        overviewText="I worked in the BYU Human Computer Interaction Lab from 2019–2021. I was initially drawn to this lab because I was interested in the relationship between technology and the outdoors. Among other projects, I spent significant time researching this topic. I co-authored “Outside Where? A Survey of Climates and Built Environments in Studies of HCI Outdoors,” a paper published in the CHI 2021 proceedings."
         technologies={["Python", "R"]}
         websiteUrl="https://dl.acm.org/doi/fullHtml/10.1145/3491102.3507656"
         websiteButtonText="View paper"

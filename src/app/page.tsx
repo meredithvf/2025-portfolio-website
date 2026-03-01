@@ -79,7 +79,7 @@ export default function Home() {
       x: 48,
       y: 9,
       caption:
-        "A meditation room at Zen Mountain Monastery, Mt. Tremper, New York. I lived at the monastery for a month, meditating and working alongside the nuns and monks.",
+        "A meditation room at Zen Mountain Monastery, Mt. Tremper, New York. I stayed at the monastery for a month, meditating and working alongside the nuns and monks.",
     },
     D: {
       x: 55.8,
@@ -97,7 +97,7 @@ export default function Home() {
       x: 77.14,
       y: 8.4,
       caption:
-        "Sheep graze behind the cathedral and cemetery at Abbaye des Dombes, France. I lived at the Abbey for a short time, working on the dairy farm and participating in daily rituals.",
+        "Sheep graze behind the cathedral and cemetery at Abbaye des Dombes, France. I stayed at the Abbey for a short time, working on the dairy farm and participating in daily rituals.",
     },
     H: {
       x: 89,

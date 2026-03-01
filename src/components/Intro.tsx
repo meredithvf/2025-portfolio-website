@@ -81,7 +81,7 @@ export default function Intro({ onWorkReverseTab }: IntroProps) {
             >
               <p className="mb-4">
                 My name is Meredith, obviously. You just saw a few photos from
-                the places I lived in 2025 - at Buddhist monastaries, a French
+                the places I lived in 2025 - at Buddhist monasteries, a French
                 abbey, and the most beautiful Moroccan town. I care deeply about
                 spiritual matters and the art of living.
               </p>
