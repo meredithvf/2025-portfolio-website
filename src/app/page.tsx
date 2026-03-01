@@ -52,6 +52,7 @@ export default function Home() {
   const cancelTouchMotionRef = useRef<() => void>(() => {});
   const stableViewportHeightRef = useRef(0);
   const [viewportHeightPx, setViewportHeightPx] = useState(0);
+  const [isMobile, setIsMobile] = useState(false);
 
   // --- CONFIG ------------------------------------------------------------
   const MIN_ZOOM = 1;
@@ -115,7 +116,6 @@ export default function Home() {
   });
   const randomTargetRef = useRef(randomTarget);
   const wasZoomedInRef = useRef(false);
-  const isMobile = window.innerWidth < 768;
   const homeCenterRef = useRef<{ x: number; y: number } | null>(null);
   const scrollHintText = zoomComplete
     ? isMobile
@@ -134,6 +134,23 @@ export default function Home() {
   const getZoomPhaseHeight = () => getStableViewportHeight() * 3;
   const isTouchDevice = () =>
     "ontouchstart" in window || navigator.maxTouchPoints > 0;
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const syncIsMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    syncIsMobile();
+    window.addEventListener("resize", syncIsMobile, { passive: true });
+    window.addEventListener("orientationchange", syncIsMobile);
+
+    return () => {
+      window.removeEventListener("resize", syncIsMobile);
+      window.removeEventListener("orientationchange", syncIsMobile);
+    };
+  }, []);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
