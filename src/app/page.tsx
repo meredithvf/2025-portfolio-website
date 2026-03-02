@@ -57,7 +57,9 @@ export default function Home() {
   const [isMobile, setIsMobile] = useState(false);
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
   const [showScrollHintNudge, setShowScrollHintNudge] = useState(false);
-  const hasShownScrollHintNudgeRef = useRef(false);
+  const hasShownInitialScrollHintNudgeRef = useRef(false);
+  const hasShownZoomedScrollHintNudgeRef = useRef(false);
+  const scrollHintNudgeTimeoutRef = useRef<number | null>(null);
 
   // --- CONFIG ------------------------------------------------------------
   const MIN_ZOOM = 1;
@@ -140,6 +142,39 @@ export default function Home() {
   const getZoomPhaseHeight = () => getStableViewportHeight() * 3;
   const isTouchDevice = () =>
     "ontouchstart" in window || navigator.maxTouchPoints > 0;
+  const triggerScrollHintNudge = (stopOnFirstScroll = false) => {
+    if (typeof window === "undefined" || prefersReducedMotion) return;
+
+    if (scrollHintNudgeTimeoutRef.current !== null) {
+      window.clearTimeout(scrollHintNudgeTimeoutRef.current);
+      scrollHintNudgeTimeoutRef.current = null;
+    }
+
+    // Toggle off before re-enabling so animation can retrigger cleanly.
+    setShowScrollHintNudge(false);
+    requestAnimationFrame(() => {
+      setShowScrollHintNudge(true);
+    });
+
+    scrollHintNudgeTimeoutRef.current = window.setTimeout(() => {
+      setShowScrollHintNudge(false);
+      scrollHintNudgeTimeoutRef.current = null;
+    }, 2000);
+
+    if (stopOnFirstScroll) {
+      const stopNudgeOnScroll = () => {
+        setShowScrollHintNudge(false);
+        if (scrollHintNudgeTimeoutRef.current !== null) {
+          window.clearTimeout(scrollHintNudgeTimeoutRef.current);
+          scrollHintNudgeTimeoutRef.current = null;
+        }
+      };
+      window.addEventListener("scroll", stopNudgeOnScroll, {
+        passive: true,
+        once: true,
+      });
+    }
+  };
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -178,31 +213,35 @@ export default function Home() {
     if (typeof window === "undefined") return;
     if (
       !imageLoaded ||
-      prefersReducedMotion ||
-      hasShownScrollHintNudgeRef.current
+      zoomComplete ||
+      hasShownInitialScrollHintNudgeRef.current
     )
       return;
 
-    hasShownScrollHintNudgeRef.current = true;
-    setShowScrollHintNudge(true);
+    hasShownInitialScrollHintNudgeRef.current = true;
+    triggerScrollHintNudge(true);
+  }, [imageLoaded, zoomComplete, prefersReducedMotion]);
 
-    const stopNudgeTimeout = window.setTimeout(() => {
-      setShowScrollHintNudge(false);
-    }, 2000);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (
+      !imageLoaded ||
+      !zoomComplete ||
+      hasShownZoomedScrollHintNudgeRef.current
+    )
+      return;
 
-    const stopNudgeOnScroll = () => {
-      setShowScrollHintNudge(false);
-    };
-    window.addEventListener("scroll", stopNudgeOnScroll, {
-      passive: true,
-      once: true,
-    });
+    hasShownZoomedScrollHintNudgeRef.current = true;
+    triggerScrollHintNudge();
+  }, [imageLoaded, zoomComplete, prefersReducedMotion]);
 
+  useEffect(() => {
     return () => {
-      window.clearTimeout(stopNudgeTimeout);
-      window.removeEventListener("scroll", stopNudgeOnScroll);
+      if (scrollHintNudgeTimeoutRef.current !== null) {
+        window.clearTimeout(scrollHintNudgeTimeoutRef.current);
+      }
     };
-  }, [imageLoaded, prefersReducedMotion]);
+  }, []);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
