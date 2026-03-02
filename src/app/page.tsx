@@ -50,6 +50,8 @@ export default function Home() {
   const touchInertiaRafRef = useRef<number | null>(null);
   const touchManualScrollActiveRef = useRef(false);
   const cancelTouchMotionRef = useRef<() => void>(() => {});
+  const previousScrollTopRef = useRef(0);
+  const autoZoomSnapLockRef = useRef(false);
   const stableViewportHeightRef = useRef(0);
   const [viewportHeightPx, setViewportHeightPx] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
@@ -60,6 +62,7 @@ export default function Home() {
   // --- CONFIG ------------------------------------------------------------
   const MIN_ZOOM = 1;
   const MAX_ZOOM = 35;
+  const FULL_AUTO_ZOOM_INPUT_PX = 28;
   const TARGETS = {
     M: {
       x: 16.765,
@@ -173,7 +176,11 @@ export default function Home() {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    if (!imageLoaded || prefersReducedMotion || hasShownScrollHintNudgeRef.current)
+    if (
+      !imageLoaded ||
+      prefersReducedMotion ||
+      hasShownScrollHintNudgeRef.current
+    )
       return;
 
     hasShownScrollHintNudgeRef.current = true;
@@ -638,9 +645,53 @@ export default function Home() {
 
   // Handle scroll events
   useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const normalizeWheelDeltaPx = (event: WheelEvent) => {
+      if (event.deltaMode === 1) return event.deltaY * 16;
+      if (event.deltaMode === 2) return event.deltaY * window.innerHeight;
+      return event.deltaY;
+    };
+
+    const handleWheel = (event: WheelEvent) => {
+      const deltaPx = normalizeWheelDeltaPx(event);
+      const scrollTop = window.scrollY;
+      const zoomPhaseHeight = getZoomPhaseHeight();
+      const scrollingDown = deltaPx > 0;
+
+      if (
+        !autoZoomSnapLockRef.current &&
+        scrollingDown &&
+        deltaPx >= FULL_AUTO_ZOOM_INPUT_PX &&
+        scrollTop > 0 &&
+        scrollTop < zoomPhaseHeight
+      ) {
+        autoZoomSnapLockRef.current = true;
+        cancelTouchMotionRef.current();
+        window.scrollTo({
+          top: zoomPhaseHeight,
+          behavior: "smooth",
+        });
+        window.setTimeout(() => {
+          autoZoomSnapLockRef.current = false;
+        }, 700);
+      }
+    };
+
+    window.addEventListener("wheel", handleWheel, { passive: true });
+    return () => {
+      window.removeEventListener("wheel", handleWheel);
+    };
+  }, []);
+
+  useEffect(() => {
     const syncFromScrollPosition = () => {
       const scrollTop = window.scrollY;
       const zoomPhaseHeight = getZoomPhaseHeight();
+      const previousScrollTop = previousScrollTopRef.current;
+      const scrollDelta = scrollTop - previousScrollTop;
+      const scrollingDown = scrollTop > previousScrollTop + 1;
+      previousScrollTopRef.current = scrollTop;
 
       let newProgress: number;
       let newZoomComplete: boolean;
