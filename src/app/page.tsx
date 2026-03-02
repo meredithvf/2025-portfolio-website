@@ -53,6 +53,9 @@ export default function Home() {
   const stableViewportHeightRef = useRef(0);
   const [viewportHeightPx, setViewportHeightPx] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+  const [showScrollHintNudge, setShowScrollHintNudge] = useState(false);
+  const hasShownScrollHintNudgeRef = useRef(false);
 
   // --- CONFIG ------------------------------------------------------------
   const MIN_ZOOM = 1;
@@ -151,6 +154,48 @@ export default function Home() {
       window.removeEventListener("orientationchange", syncIsMobile);
     };
   }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const syncReducedMotion = () => {
+      setPrefersReducedMotion(mediaQuery.matches);
+    };
+
+    syncReducedMotion();
+    mediaQuery.addEventListener("change", syncReducedMotion);
+
+    return () => {
+      mediaQuery.removeEventListener("change", syncReducedMotion);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (!imageLoaded || prefersReducedMotion || hasShownScrollHintNudgeRef.current)
+      return;
+
+    hasShownScrollHintNudgeRef.current = true;
+    setShowScrollHintNudge(true);
+
+    const stopNudgeTimeout = window.setTimeout(() => {
+      setShowScrollHintNudge(false);
+    }, 2000);
+
+    const stopNudgeOnScroll = () => {
+      setShowScrollHintNudge(false);
+    };
+    window.addEventListener("scroll", stopNudgeOnScroll, {
+      passive: true,
+      once: true,
+    });
+
+    return () => {
+      window.clearTimeout(stopNudgeTimeout);
+      window.removeEventListener("scroll", stopNudgeOnScroll);
+    };
+  }, [imageLoaded, prefersReducedMotion]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -966,8 +1011,9 @@ export default function Home() {
               }
               style={{
                 position: "absolute",
-                top: "2rem",
-                left: "2rem",
+                left: "50%",
+                bottom: "1.5rem",
+                transform: "translateX(-50%)",
                 padding: "0.6rem 1rem",
                 backgroundColor: "rgba(26, 26, 24, 0.88)",
                 color: "#ece7c1",
@@ -979,6 +1025,10 @@ export default function Home() {
                 cursor: "pointer",
                 backdropFilter: "blur(4px)",
                 pointerEvents: "auto",
+                animation:
+                  showScrollHintNudge && !prefersReducedMotion
+                    ? "scroll-hint-nudge 1400ms ease-out 1"
+                    : "none",
               }}
             >
               {scrollHintText}
@@ -1044,6 +1094,26 @@ export default function Home() {
         <WorkShowcase projects={projects} />
         <Footer />
       </main>
+      <style jsx>{`
+        @keyframes scroll-hint-nudge {
+          0% {
+            opacity: 0.78;
+            transform: translateX(-50%) translateY(4px);
+          }
+          35% {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+          }
+          70% {
+            opacity: 1;
+            transform: translateX(-50%) translateY(-2px);
+          }
+          100% {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+          }
+        }
+      `}</style>
     </div>
   );
 }
