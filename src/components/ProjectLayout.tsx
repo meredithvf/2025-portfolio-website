@@ -6,6 +6,7 @@ import React, { useEffect, useRef } from "react";
 import ProjectHeader from "@/components/ProjectHeader";
 import TechnicalStack from "@/components/TechnicalStack";
 import Button from "@/components/Button";
+import ResumeLink from "@/components/ResumeLink";
 
 interface Feature {
   image: string;
@@ -117,14 +118,12 @@ export default function ProjectLayout({
           >
             Home
           </Link>
-          <a
-            href="/resume.pdf"
-            download="meredith-von-feldt-resume.pdf"
-            datadog-action-name="Project Header Resume"
+          <ResumeLink
+            datadogActionName="Project Header Resume"
             className="text-foreground/40 hover:text-foreground transition-colors duration-300 text-sm tracking-wider"
           >
             Resume
-          </a>
+          </ResumeLink>
         </div>
       </div>
 

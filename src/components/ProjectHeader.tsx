@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState, useRef } from "react";
+import ResumeLink from "@/components/ResumeLink";
 
 interface ProjectHeaderProps {
   title: string;
@@ -77,14 +78,12 @@ export default function ProjectHeader({
         className="absolute bottom-4 left-4 right-4 md:hidden"
       >
         <div className="flex flex-wrap justify-center gap-x-6 gap-y-1 text-s tracking-wider uppercase text-background/55">
-          <a
-            href="/resume.pdf"
-            download="meredith-von-feldt-resume.pdf"
-            datadog-action-name="Project Header Mobile Resume"
+          <ResumeLink
+            datadogActionName="Project Header Mobile Resume"
             className="hover:text-background transition-colors duration-300"
           >
             Resume
-          </a>
+          </ResumeLink>
           <a
             href="mailto:meredithvf@gmail.com"
             datadog-action-name="Project Header Mobile Email"

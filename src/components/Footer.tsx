@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+import ResumeLink from "@/components/ResumeLink";
 
 export default function Footer() {
   const footerRef = useRef<HTMLElement>(null);
@@ -27,15 +28,6 @@ export default function Footer() {
 
     return () => observer.disconnect();
   }, []);
-
-  const handleResumeDownload = () => {
-    const link = document.createElement("a");
-    link.href = "/resume.pdf";
-    link.download = "meredith-von-feldt-resume.pdf";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
 
   const currentYear = new Date().getFullYear();
 
@@ -81,14 +73,13 @@ export default function Footer() {
           </p>
 
           <div className="flex items-center gap-8">
-            <button
-              onClick={handleResumeDownload}
-              datadog-action-name="Footer Download Resume"
+            <ResumeLink
+              datadogActionName="Footer Download Resume"
               className="text-sm text-foreground/[0.66] hover:text-foreground transition-colors duration-300 link-underline"
               aria-label="Download resume as PDF"
             >
               Download Resume
-            </button>
+            </ResumeLink>
 
             <Link
               href="/#intro"

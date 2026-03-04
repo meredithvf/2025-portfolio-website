@@ -5,6 +5,7 @@ import {
   useRef,
   type KeyboardEvent as ReactKeyboardEvent,
 } from "react";
+import ResumeLink from "@/components/ResumeLink";
 
 type IntroProps = {
   onWorkReverseTab?: (event: ReactKeyboardEvent<HTMLAnchorElement>) => void;
@@ -40,15 +41,6 @@ export default function Intro({ onWorkReverseTab }: IntroProps) {
     if (el && !elementsRef.current.includes(el)) {
       elementsRef.current.push(el);
     }
-  };
-
-  const handleResumeDownload = () => {
-    const link = document.createElement("a");
-    link.href = "/resume.pdf";
-    link.download = "meredith-von-feldt-resume.pdf";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
   };
 
   return (
@@ -113,9 +105,8 @@ export default function Intro({ onWorkReverseTab }: IntroProps) {
               </li>
 
               <li ref={addToRefs} className="animate-on-scroll delay-300">
-                <button
-                  onClick={handleResumeDownload}
-                  datadog-action-name="Intro Download Resume"
+                <ResumeLink
+                  datadogActionName="Intro Download Resume"
                   className="group flex items-center justify-between py-3 border-b border-foreground/30 hover:border-foreground/70 transition-colors duration-300 w-full text-left"
                   aria-label="Download resume as PDF"
                 >
@@ -125,7 +116,7 @@ export default function Intro({ onWorkReverseTab }: IntroProps) {
                   <span className="text-lg text-foreground/[0.68] group-hover:text-foreground group-hover:-translate-x-1 transition-colors duration-300">
                     ↓ PDF
                   </span>
-                </button>
+                </ResumeLink>
               </li>
 
               <li ref={addToRefs} className="animate-on-scroll delay-400">

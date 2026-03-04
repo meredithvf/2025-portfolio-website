@@ -1,17 +1,8 @@
 "use client";
 
-import Button from "@/components/Button";
+import ResumeLink from "@/components/ResumeLink";
 
 export default function Resume() {
-  const handleDownload = () => {
-    const link = document.createElement("a");
-    link.href = "/resume.pdf";
-    link.download = "meredith-von-feldt-resume.pdf";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
-
   return (
     <section id="resume" className="relative w-full min-h-screen py-20 px-6">
       <div className="max-w-7xl mx-auto">
@@ -25,7 +16,12 @@ export default function Resume() {
             Want something more formal?
           </p>
 
-          <Button onClick={handleDownload}>Download Resume ↓</Button>
+          <ResumeLink
+            className="px-6 py-3 text-xl bg-foreground text-background border-foreground hover:bg-foreground/5 hover:text-foreground hover:border-foreground inline-block border rounded-sm transition-all duration-300 hover:translate-x-2 hover:scale-110 origin-left"
+            aria-label="Download resume as PDF"
+          >
+            Download Resume ↓
+          </ResumeLink>
         </div>
       </div>
     </section>
