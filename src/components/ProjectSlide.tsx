@@ -107,6 +107,9 @@ export default function ProjectSlide({
   };
   const isVideo = media.type === "video";
   const isByuLogoImage = !isVideo && media.src.includes("byu-logo");
+  const isHorizontalLogoImage =
+    !isVideo && media.src.includes("lean-six-sigma-tool/logo");
+  const isContainedLogoImage = isByuLogoImage || isHorizontalLogoImage;
 
   // Colors
   const sunColor = project.sunColor || "#E8D5A3";
@@ -257,7 +260,9 @@ export default function ProjectSlide({
               className={`relative overflow-hidden rounded-lg shadow-xl bg-black/10 ${
                 isByuLogoImage
                   ? "w-64 md:w-72 aspect-square"
-                  : "w-80 md:w-96 aspect-[16/10]"
+                  : isHorizontalLogoImage
+                    ? "w-80 md:w-96 aspect-[300/107]"
+                    : "w-80 md:w-96 aspect-[16/10]"
               }`}
             >
               {isVideo ? (
@@ -277,12 +282,22 @@ export default function ProjectSlide({
                   src={media.src}
                   alt={project.title}
                   fill
-                  sizes={isByuLogoImage ? "(max-width: 768px) 16rem, 18rem" : "(max-width: 768px) 20rem, 24rem"}
+                  sizes={
+                    isByuLogoImage
+                      ? "(max-width: 768px) 16rem, 18rem"
+                      : isHorizontalLogoImage
+                        ? "(max-width: 768px) 20rem, 24rem"
+                        : "(max-width: 768px) 20rem, 24rem"
+                  }
                   className={`
-                    w-full h-full object-cover
+                    w-full h-full
                     transition-transform duration-500
                     group-hover:scale-105
-                    ${isByuLogoImage ? "object-contain bg-white p-0 md:p-5" : ""}
+                    ${
+                      isContainedLogoImage
+                        ? "object-contain bg-white p-3 md:p-4"
+                        : "object-cover"
+                    }
                   `}
                   loading="lazy"
                 />

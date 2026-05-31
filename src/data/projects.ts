@@ -16,6 +16,20 @@ export const projects: Project[] = [
     sunColor: "#efe0a8",
   },
   {
+    id: "6",
+    title: "Lean Six Sigma Tool",
+    category: "Full stack developer",
+    thumbnail: "/images/lean-six-sigma-tool/logo.png",
+    slug: "lean-six-sigma-tool",
+    description:
+      "A Lean Six Sigma project helper for Crimson Corporation that guides teams through early DMAIC charter work, from intake to root-cause exploration and solution planning.",
+    showcaseMedia: {
+      type: "image",
+      src: "/images/lean-six-sigma-tool/logo.png",
+    },
+    sunColor: "#ecd5a5",
+  },
+  {
     id: "1",
     title: "Lucid Software",
     category: "Software Engineer, Design System Team Lead",

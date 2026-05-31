@@ -84,6 +84,54 @@ export default async function ProjectDetailPage({
     );
   }
 
+  if (slug === "lean-six-sigma-tool") {
+    return (
+      <ProjectLayout
+        title={project.title}
+        category={project.category}
+        backHref={backHref}
+        overviewText="This project is a Lean Six Sigma Project Helper, created for Crimson Corporation, that guides teams through early DMAIC charter work, from intake to root-cause exploration and solution planning in one workflow. It helps users draft problem and goal statements, brainstorm potential causes, run 5 Whys, and produce a clean project summary for sharing. The tool is now used by real Lean Six Sigma students as part of their project development process."
+        overviewMedia={{
+          type: "video",
+          src: "/videos/lean-six-sigma-tool.mp4",
+        }}
+        overviewDescription="The tool is a Next.js application with a React/TypeScript frontend and a centralized workspace state hook that coordinates each stage of the flow. The UI calls a single server route that branches by action (problem, goal, potential causes, root cause analysis, solutioning) and uses OpenAI responses with strict prompt rules, structured parsing, and guardrails/validation for reliable output. I also implemented iterative regenerate behaviors (full and partial), and export utilities (html2canvas + jsPDF) so users can copy or download polished project summaries."
+        featuresTitle="What I Worked On"
+        features={[
+          {
+            image: "/images/lean-six-sigma-tool/problem-statement.png",
+            alt: "Problem statement draft with finalize and revision input",
+            title: "Problem statement creation",
+            description:
+              "The app collects structured intake fields and sends them to the backend prompt pipeline to generate a charter-ready problem statement draft, then supports chat-based revisions.",
+          },
+          {
+            image: "/images/lean-six-sigma-tool/potential-causes.png",
+            alt: "Grid of potential causes with Critical X selection",
+            title: "Potential causes hypothesis",
+            description:
+              "The app automatically generates a broad cause brainstorm based on the problem and goal, lets users add custom causes, and supports partial regeneration that keeps selected “Critical X” items while replacing only unselected rows.",
+          },
+          {
+            image: "/images/lean-six-sigma-tool/root-cause-analysis.png",
+            alt: "5 Whys chain for a Critical X with root cause hypothesis",
+            title: "Root Cause Analysis",
+            description:
+              "For each selected potential cause, the 5 Whys engine runs step-by-step by requesting one contextual “why” question and multiple answer options at a time, then compiles the completed five-step chain into a concise root-cause hypothesis.",
+          },
+          {
+            image: "/images/lean-six-sigma-tool/solutions.png",
+            alt: "Root cause selection and generated solution ideas",
+            title: "Solutioning",
+            description:
+              "The tool automatically generates targeted solution ideas, with the ability to keep chosen ideas during partial regeneration, add manual solutions, and finalize selected actions for summary export.",
+          },
+        ]}
+        technologies={["Next.js", "React", "TypeScript", "OpenAI"]}
+      />
+    );
+  }
+
   if (slug === "lucid") {
     return (
       <ProjectLayout
