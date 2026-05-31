@@ -9,7 +9,6 @@ interface ButtonProps {
   rel?: string;
   className?: string;
   variant?: "inverted" | "subtle";
-  datadogActionName?: string;
 }
 
 export default function Button({
@@ -20,7 +19,6 @@ export default function Button({
   rel,
   className = "",
   variant = "inverted",
-  datadogActionName,
 }: ButtonProps) {
   const baseStyles =
     "px-6 py-3 text-xl bg-foreground text-background border-foreground hover:bg-foreground/5 hover:text-foreground hover:border-foreground inline-block border rounded-sm transition-all duration-300 hover:translate-x-2 hover:scale-110 origin-left";
@@ -36,7 +34,6 @@ export default function Button({
           target={target || "_blank"}
           rel={rel || "noopener noreferrer"}
           className={combinedClassName}
-          datadog-action-name={datadogActionName}
         >
           {children}
         </a>
@@ -44,11 +41,7 @@ export default function Button({
     }
     // Internal link
     return (
-      <Link
-        href={href}
-        className={combinedClassName}
-        datadog-action-name={datadogActionName}
-      >
+      <Link href={href} className={combinedClassName}>
         {children}
       </Link>
     );
@@ -56,11 +49,7 @@ export default function Button({
 
   // Button
   return (
-    <button
-      onClick={onClick}
-      className={combinedClassName}
-      datadog-action-name={datadogActionName}
-    >
+    <button onClick={onClick} className={combinedClassName}>
       {children}
     </button>
   );

@@ -9,8 +9,6 @@
     "lint": "eslint"
   },
   "dependencies": {
-    "@datadog/browser-rum": "^6.28.1",
-    "@datadog/browser-rum-react": "^6.28.1",
     "next": "15.5.9",
     "openseadragon": "^5.0.1",
     "react": "19.1.0",

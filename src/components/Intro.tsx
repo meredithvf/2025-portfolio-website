@@ -92,7 +92,6 @@ export default function Intro({ onWorkReverseTab }: IntroProps) {
                 <a
                   href="#work"
                   onKeyDown={onWorkReverseTab}
-                  datadog-action-name="Intro Work"
                   className="group flex items-center justify-between py-3 border-b border-foreground/30 hover:border-foreground/70 transition-colors duration-300"
                 >
                   <span className="display-heading text-2xl md:text-3xl group-hover:translate-x-2 group-hover:scale-110 transition-transform duration-300">
@@ -106,7 +105,6 @@ export default function Intro({ onWorkReverseTab }: IntroProps) {
 
               <li ref={addToRefs} className="animate-on-scroll delay-300">
                 <ResumeLink
-                  datadogActionName="Intro Download Resume"
                   className="group flex items-center justify-between py-3 border-b border-foreground/30 hover:border-foreground/70 transition-colors duration-300 w-full text-left"
                   aria-label="Download resume as PDF"
                 >
@@ -122,7 +120,6 @@ export default function Intro({ onWorkReverseTab }: IntroProps) {
               <li ref={addToRefs} className="animate-on-scroll delay-400">
                 <a
                   href="mailto:meredithvf@gmail.com"
-                  datadog-action-name="Intro Email"
                   className="group flex items-center justify-between py-3 border-b border-foreground/30 hover:border-foreground/70 transition-colors duration-300"
                   aria-label="Send email to meredithvf@gmail.com"
                 >

@@ -51,7 +51,6 @@ export default function Footer() {
           </p>
           <a
             href="mailto:meredithvf@gmail.com"
-            datadog-action-name="Footer Email"
             className="display-heading text-4xl md:text-5xl lg:text-6xl link-underline hover:text-foreground/70 transition-colors duration-300"
             aria-label="Send email to meredithvf@gmail.com"
           >
@@ -74,7 +73,6 @@ export default function Footer() {
 
           <div className="flex items-center gap-8">
             <ResumeLink
-              datadogActionName="Footer Download Resume"
               className="text-sm text-foreground/[0.66] hover:text-foreground transition-colors duration-300 link-underline"
               aria-label="Download resume as PDF"
             >
@@ -83,7 +81,6 @@ export default function Footer() {
 
             <Link
               href="/#intro"
-              datadog-action-name="Footer Back To Top"
               className="text-sm text-foreground/[0.66] hover:text-foreground transition-colors duration-300"
               aria-label="Scroll back to top"
             >

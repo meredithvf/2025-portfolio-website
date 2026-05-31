@@ -1094,7 +1094,6 @@ export default function Home() {
               ref={scrollHintButtonRef}
               type="button"
               onClick={jumpToZoomedPhoto}
-              datadog-action-name="Home Scroll Hint"
               onKeyDown={handleScrollHintKeyDown}
               aria-label={
                 zoomComplete ? "Jump to intro content" : "Jump to zoomed photo"

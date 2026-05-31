@@ -103,7 +103,6 @@ export default async function ProjectDetailPage({
               href="https://www.lucid.co/accessibility"
               target="_blank"
               rel="noopener noreferrer"
-              datadog-action-name="Lucid Accessibility Statement"
               className="underline hover:text-foreground transition-colors"
             >
               accessibility statement
@@ -173,7 +172,6 @@ export default async function ProjectDetailPage({
               href="https://www.cerealreads.com/our_story"
               target="_blank"
               rel="noopener noreferrer"
-              datadog-action-name="Cereal Reads Our Story"
               className="underline hover:text-foreground transition-colors"
             >
               here
